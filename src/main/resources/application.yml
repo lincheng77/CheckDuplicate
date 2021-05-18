@@ -1,0 +1,21 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+    url: jdbc:mysql://10.211.55.30:3306/check_duplicate?useUnicode=true&characterEncoding=UTF-8
+  jpa:
+    show-sql: true
+  servlet: #上传文件
+    multipart:
+      max-file-size: 32MB #单个文件大小限制
+      max-request-size: 128MB #一次上传文件大小限制
+  redis:
+    host: 10.211.55.30
+    port: 6379
+
+#开启knife4j增强
+knife4j:
+  enable: true
