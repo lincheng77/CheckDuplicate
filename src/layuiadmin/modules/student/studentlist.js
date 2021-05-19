@@ -14,19 +14,19 @@
   ,form = layui.form;
   //学生端作业管理
   table.render({
-    elem: '#LAY-app-content-list'
+    elem: '#LAY-app-homework-list'
     ,url: layui.setter.reqUrl + '/homework/listPageForStudent' //模拟接口
     ,cols: [[
       {type: 'checkbox', fixed: 'left'}
-      ,{field: 'id', width: 100, title: '作业-学生ID', sort: true, hide: true}
-      ,{field: 'homeworkId', width: 130, title: '作业ID', sort: true} //隐藏
+      ,{field: 'id', width: 100, title: '作业-学生ID', hide: true}//隐藏
+      ,{field: 'homeworkId', width: 120, title: '作业ID'} 
       ,{field: 'subjectName', title: '作业学科', minWidth: 170}
-      ,{field: 'name', title: '作业名称', minWidth: 270}
+      ,{field: 'homeworkName', title: '作业名称', minWidth: 270}
       ,{field: 'content', title: '作业内容', hide: true} //隐藏
-      ,{field: 'submitted', title: '作业状态', sort: true , width: 120, templet: '#buttonTpl-submitted', align: 'center'}
+      ,{field: 'submitted', title: '作业状态' , width: 120, templet: '#buttonTpl-submitted', align: 'center'}
       ,{field: 'isCheck', title: '查重情况', templet: '#buttonTpl-isCheck', minWidth: 80, align: 'center'}
-      ,{field: 'deadline', title: '截止日期'}
-      ,{title: '操作', minWidth: 150, align: 'center', fixed: 'right', toolbar: '#table-content-list'}
+      ,{field: 'deadline', title: '截止日期', width: 180 , align: 'center'}
+      ,{title: '操作', minWidth: 230, align: 'center', fixed: 'right', templet: '#table-content-list', toolbar: '#table-content-list'}
     ]]
     ,page: true
     ,limit: 10
@@ -35,10 +35,11 @@
   });
   
   //班级管理监听工具条
-  table.on('tool(LAY-app-content-list)', function(obj){
+  table.on('tool(LAY-app-homework-list)', function(obj){
     var data = obj.data;
     
-    if(obj.event === 'del'){
+    //交作业
+    if(obj.event === 'submit-homework'){
       console.log(data)
       console.log(JSON.stringify(data))
       layer.confirm('确定删除此文章？', function(index){
@@ -61,7 +62,9 @@
 
         layer.close(index);
       });
-    } else if(obj.event === 'edit'){
+    
+    //作业详情
+    } else if(obj.event === 'details'){
       json = JSON.stringify(data)
       layer.open({
         type: 2
