@@ -12,6 +12,7 @@ public interface HomeworkService {
 
     Homework save(String[] clazzIdArr, Homework homeWork);
 
-    Page<HomeworkStudent> listPageForStudent(Integer page, Integer limit, Integer submitted, String deadline);
+    Page<HomeworkStudent> listPageForStudent(Integer page, Integer limit, Integer submitted,
+                                             String startTime, String deadline);
 
 }

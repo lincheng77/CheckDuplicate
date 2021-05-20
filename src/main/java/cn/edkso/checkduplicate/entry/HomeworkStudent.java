@@ -1,5 +1,6 @@
 package cn.edkso.checkduplicate.entry;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import javax.persistence.Entity;
@@ -32,6 +33,13 @@ public class HomeworkStudent {
     private Float imgRepeat;
 
     private String filePath;
+    private String fileName;
+    private String fileRandomName;
 
+    private String studentFilePath;
+    private String studentFileName;
+    private String studentFileRandomName;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp deadline;
+
 }

@@ -15,4 +15,8 @@ public class FileUtils {
         uploadFileName = sf.format(new Date()) + (new Random().nextInt(99999)) + suffix;
         return uploadFileName;
     }
+
+    public static String getFileName(MultipartFile file){
+        return file.getOriginalFilename();
+    }
 }

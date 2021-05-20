@@ -2,23 +2,25 @@ package cn.edkso.checkduplicate.service.impl;
 
 
 import cn.edkso.checkduplicate.dao.HomeworkClazzDao;
-
 import cn.edkso.checkduplicate.dao.HomeworkDao;
 import cn.edkso.checkduplicate.dao.HomeworkStudentDao;
-import cn.edkso.checkduplicate.entry.*;
+import cn.edkso.checkduplicate.entry.Homework;
+import cn.edkso.checkduplicate.entry.HomeworkClazz;
+import cn.edkso.checkduplicate.entry.HomeworkStudent;
+import cn.edkso.checkduplicate.entry.Student;
 import cn.edkso.checkduplicate.exception.CDException;
-import cn.edkso.checkduplicate.service.ClazzService;
 import cn.edkso.checkduplicate.service.HomeworkService;
 import cn.edkso.checkduplicate.service.StudentService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.Predicate;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +86,7 @@ public class HomeworkServiceImpl implements HomeworkService {
                 homeworkStudent.setClazzId(homeworkClazz.getClazzId());
                 homeworkStudent.setState(1); //可用
                 homeworkStudent.setSubmitted(0); //未提交
-                homeworkStudent.setRepeatRate(0.0f); //重复率
+//                homeworkStudent.setRepeatRate(0.0f); //重复率
                 homeworkStudent.setIsCheck(0); //未查重
                 homeworkStudentList.add(homeworkStudent);
             }
@@ -98,21 +100,38 @@ public class HomeworkServiceImpl implements HomeworkService {
     }
 
     @Override
-    public Page<HomeworkStudent> listPageForStudent(Integer page, Integer limit, Integer submitted, String deadline) {
+    public Page<HomeworkStudent> listPageForStudent(Integer page, Integer limit, Integer submitted
+            , String startTime, String deadline) {
 
         Pageable pageable = PageRequest.of(page -1,limit);
-        HomeworkStudent homeworkStudent = new HomeworkStudent();
 
-        if(StringUtils.isNotBlank(deadline)){
-            homeworkStudent.setDeadline(Timestamp.valueOf(deadline));
-        }
-        if (submitted != null){
-            homeworkStudent.setSubmitted(submitted);
-        }
 
-        Example<HomeworkStudent> example = Example.of(homeworkStudent);
+        Specification specification = (root, cq, cb) -> {
 
-        Page<HomeworkStudent> homeworkStudentPage = homeworkStudentDao.findAll(example, pageable);
-        return homeworkStudentPage;
+            Predicate predicate = cb.conjunction();
+            //增加筛选条件1(可用)
+            predicate.getExpressions().add(cb.equal(root.get("state"), 1));
+            //增加筛选条件2（日期）
+            {
+                if(StringUtils.isNotBlank(startTime) && StringUtils.isNotBlank(deadline)){
+                    predicate.getExpressions()
+                            .add(cb.between(root.get("deadline"), Timestamp.valueOf(startTime), Timestamp.valueOf(deadline)));
+                }else if(StringUtils.isNotBlank(startTime)){
+                    predicate.getExpressions()
+                            .add(cb.between(root.get("deadline"), Timestamp.valueOf(startTime), Timestamp.valueOf("9999-12-12 23:59:59")));
+                }else if(StringUtils.isNotBlank(deadline)){
+                    predicate.getExpressions().add(cb.between(root.get("deadline"), Timestamp.valueOf("1970-01-01 00:00:00"), Timestamp.valueOf(deadline)));
+                }
+            }
+            //增加筛选条件3（提交状态）
+            if (submitted != null && submitted != -1){
+                predicate.getExpressions().add(cb.equal(root.get("submitted"), submitted));
+            }
+            //增加筛选条件4（截止日期排序）
+            cq.orderBy(cb.desc(root.get("deadline")));
+            return predicate;
+        };
+
+        return (Page<HomeworkStudent>) homeworkStudentDao.findAll(specification,pageable);
     }
 }

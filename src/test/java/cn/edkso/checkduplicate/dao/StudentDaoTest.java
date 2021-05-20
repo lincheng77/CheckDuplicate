@@ -24,4 +24,6 @@ class StudentDaoTest {
         List<Student> allByClazzId2 = studentService.findAllByClazzId(3);
         System.out.println(allByClazzId2);
     }
+
+
 }
