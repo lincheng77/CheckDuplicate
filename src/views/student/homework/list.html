@@ -21,9 +21,16 @@
             <label class="layui-form-label">作业状态</label>
             <div class="layui-input-inline">
               <select name="submitted" lay-verify="required">
+                <option value="-1">无条件</option>
                 <option value="0">未提交</option>
                 <option value="1">已提交</option>
               </select>
+            </div>
+          </div>
+          <div class="layui-inline">
+            <label class="layui-form-label">开始日期</label>
+            <div class="layui-input-inline" >
+              <input type="text" name="startTime" class="layui-input" id="startTime" autocomplete="off" placeholder="请选择开始日期">
             </div>
           </div>
           <div class="layui-inline">
@@ -51,31 +58,37 @@
         </script>
         <script type="text/html" id="buttonTpl-isCheck">
           {{#  if(d.isCheck == 1 && d.textRepeat <= 0.20){ }}
-              <button class="layui-btn layui-btn-xs layui-btn-primary" >重复率:{{d.textRepeat}}</button>
+              <span class="layui-badge-dot layui-bg-green"></span>&nbsp;重复率:{{d.textRepeat}}
           {{#  } else if(d.isCheck == 1 && d.textRepeat <= 0.30) { }}
-              <button class="layui-btn layui-btn-xs layui-btn-warm" >重复率:{{d.textRepeat}}</button>
+              <span class="layui-badge-dot layui-bg-orange"></span>&nbsp;重复率:{{d.textRepeat}}
           {{#  } else if(d.isCheck == 1 ) { }}
-              <button class="layui-btn layui-btn-xs layui-btn-danger" >重复率:{{d.textRepeat}}</button>
+              <span class="layui-badge-dot"></span>&nbsp;重复率:{{d.textRepeat}}
           {{#  } else { }}
             <button class="layui-btn layui-btn-primary layui-btn-xs">未查重</button>
           {{#  } }}
         </script>
         <script type="text/html" id="table-content-list">
-          {{#  if(d.filePath != null ){ }}
-            <!-- <a class="layui-btn layui-bg-cyan layui-btn-xs" lay-event="down">下载附件</a> -->
-            <a class="layui-btn layui-bg-cyan layui-btn-xs">下载附件</a>
-          {{#  } else { }}
-            <a class="layui-btn layui-btn-primary layui-btn-xs">无需附件</a>
-          {{#  } }}
-          <!-- <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit"><i class="layui-icon layui-icon-edit"></i>编辑</a>
-          <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon layui-icon-delete"></i>删除</a> -->
           <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="details">作业详情</a>
+          {{#  if(d.filePath != null ){ }}
+            <a class="layui-btn layui-bg-cyan layui-btn-xs" lay-event="down">下载附件</a>
+          {{#  } else { }}
+            <a class="layui-btn layui-btn-disabled layui-btn-xs">无需附件</a>
+          {{#  } }}
+
+          {{#  
+            var currenTime=new Date();
+            var deadline = new Date(Date.parse(d.deadline));
+          }}
           {{#  if(d.submitted == 1 ){ }}
             <a class="layui-btn layui-btn-primary layui-btn-xs">已交作业</a>
+          {{#  } else if(deadline < currenTime) { }}
+            <a class="layui-btn layui-btn-disabled layui-btn-xs" >过期作业</a>    
           {{#  } else { }}
-            <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="submit-homework">上交作业</a>
+            <a class="layui-btn layui-btn-xs" lay-event="submit-homework">上交作业</a>
           {{#  } }}
+
         </script>
+        
       </div>
     </div>
   </div>
@@ -93,6 +106,9 @@
     ,laydate = layui.laydate
     ,form = layui.form;
     
+
+
+
     //监听搜索
     form.on('submit(LAY-app-homework-search)', function(data){
       var field = data.field;
@@ -106,11 +122,21 @@
     
     //执行一个laydate实例【日期选择】
     laydate.render({
+      elem: '#startTime' //指定元素
+      // ,show: true //直接显示
+      ,trigger: 'click' //采用click弹出
+      ,theme: 'molv'
+      ,format: 'yyyy-MM-dd HH:mm:ss' //可任意组合
+      ,type: 'datetime'
+    });
+    //执行一个laydate实例【日期选择】
+    laydate.render({
       elem: '#deadline' //指定元素
       // ,show: true //直接显示
       ,trigger: 'click' //采用click弹出
       ,theme: 'molv'
       ,format: 'yyyy-MM-dd HH:mm:ss' //可任意组合
+      ,type: 'datetime'
     });
 
     var $ = layui.$, active = {
