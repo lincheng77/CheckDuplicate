@@ -450,11 +450,11 @@ layui.define('view', function(exports){
     }
 
     //弹出关于面板
-    ,about: function(){
+    ,about_student: function(){
       admin.popupRight({
         id: 'LAY_adminPopupAbout'
         ,success: function(){
-          view(this.id).render('system/about');
+          view(this.id).render('system/about-student');
         }
       });
     }

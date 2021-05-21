@@ -84,14 +84,20 @@
           {{#  } else if(deadline < currenTime) { }}
             <a class="layui-btn layui-btn-disabled layui-btn-xs" >过期作业</a>    
           {{#  } else { }}
-            <a class="layui-btn layui-btn-xs" lay-event="submit-homework">上交作业</a>
+            <button type="button" class="layui-btn layui-btn-xs" lay-event="submit-homework" id="submit-homework">
+              上交作业
+            </button>
           {{#  } }}
-
         </script>
         
       </div>
+      <button style="display: none;" type="button" class="layui-btn" id="homework-file">
+        <i class="layui-icon">&#xe67c;</i>上传文件
+      </button>
     </div>
   </div>
+
+
 
   <script src="../../../layuiadmin/layui/layui.js"></script>
   <script>
@@ -104,10 +110,9 @@
     var table = layui.table
     ,admin = layui.admin
     ,laydate = layui.laydate
+    ,upload = layui.upload
     ,form = layui.form;
-    
-
-
+  
 
     //监听搜索
     form.on('submit(LAY-app-homework-search)', function(data){
@@ -119,25 +124,43 @@
         where: field
       });
     });
-    
-    //执行一个laydate实例【日期选择】
-    laydate.render({
-      elem: '#startTime' //指定元素
-      // ,show: true //直接显示
-      ,trigger: 'click' //采用click弹出
-      ,theme: 'molv'
-      ,format: 'yyyy-MM-dd HH:mm:ss' //可任意组合
-      ,type: 'datetime'
-    });
-    //执行一个laydate实例【日期选择】
-    laydate.render({
-      elem: '#deadline' //指定元素
-      // ,show: true //直接显示
-      ,trigger: 'click' //采用click弹出
-      ,theme: 'molv'
-      ,format: 'yyyy-MM-dd HH:mm:ss' //可任意组合
-      ,type: 'datetime'
-    });
+  
+      //执行实例【文件上传】
+  uploadInst = upload.render({
+    elem: '#submit-homework' //绑定元素
+    ,url: layui.setter.reqUrl + '/homework/upload' //上传接口
+    ,accept: 'file' //允许上传的文件类型
+    ,done: function(res){
+      if(res.code == 0){
+        //上传完毕回调
+        admin.req({
+          url: layui.setter.reqUrl + '/homework/submitHomework' //实际使用请改成服务端真实接口
+          ,type: 'post'
+          ,data: {
+            id: submit_homework_data.id
+            ,homeworkId: submit_homework_data.homeworkId
+            ,clazzId: submit_homework_data.clazzId
+            ,studentFileName: res.data.fileName
+            ,studentFileRandomName: res.data.fileRandomName
+            ,tmpPath: res.data.tmpPath
+          }
+          ,done: function(res){
+            layer.msg('上传完成！');
+          }
+        });
+
+      }else{
+        //请求异常回调
+        layer.msg('上传文件失败，请务必重新上传文件！');
+      }
+    }
+    ,error: function(){
+      //请求异常回调
+      layer.msg('上传文件失败，请务必重新上传文件！');
+    }
+  });
+
+    console.log("执行到这里了")
 
     var $ = layui.$, active = {
 

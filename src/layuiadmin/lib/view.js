@@ -72,16 +72,29 @@ layui.define(['laytpl', 'layer'], function(exports){
         ? JSON.parse(options.data) 
       : options.data;
 
-      //自动给参数传入默认 token
-      options.data[request.tokenName] = request.tokenName in sendData
-        ?  options.data[request.tokenName]
-      : (layui.data(setter.tableName)[request.tokenName] || '');
+      // //自动给参数传入默认 token
+      // options.data[request.tokenName] = request.tokenName in sendData
+      //   ?  options.data[request.tokenName]
+      // : (layui.data(setter.tableName)[request.tokenName] || '');
       
-      //自动给 Request Headers 传入 token
-      options.headers[request.tokenName] = request.tokenName in options.headers 
-        ?  options.headers[request.tokenName]
-      : (layui.data(setter.tableName)[request.tokenName] || '');
+      // //自动给 Request Headers 传入 token
+      // options.headers[request.tokenName] = request.tokenName in options.headers 
+      //   ?  options.headers[request.tokenName]
+      // : (layui.data(setter.tableName)[request.tokenName] || '');
+
+      for(var i = 0; i < request.tokenName.length; i++){
+          //自动给参数传入默认 token
+          options.data[request.tokenName[i]] = request.tokenName[i] in sendData
+            ?  options.data[request.tokenName[i]]
+          : (layui.data(setter.tableName)[request.tokenName[i]] || '');
+          
+          //自动给 Request Headers 传入 token
+          options.headers[request.tokenName[i]] = request.tokenName[i] in options.headers 
+            ?  options.headers[request.tokenName[i]]
+          : (layui.data(setter.tableName)[request.tokenName[i]] || '');
+      }
     }
+    
     
     delete options.success;
     delete options.error;

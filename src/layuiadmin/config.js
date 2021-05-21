@@ -8,7 +8,7 @@
 layui.define(['laytpl', 'layer', 'element', 'util'], function(exports){
   exports('setter', {
     container: 'LAY_app' //容器ID
-    ,reqUrl: 'http://127.0.0.1:8080'
+    ,reqUrl: 'http://10.211.55.30:8080'
     ,base: layui.cache.base //记录静态资源所在路径
     ,views: layui.cache.base + 'tpl/' //动态模板所在目录
     ,entry: 'index' //默认视图文件名
@@ -21,9 +21,11 @@ layui.define(['laytpl', 'layer', 'element', 'util'], function(exports){
     
     ,debug: true //是否开启调试模式。如开启，接口异常时会抛出异常 URL 等信息
 
-    //自定义请求字段
-    ,request: {
-      tokenName: 'access_token' //自动携带 token 的字段名（如：access_token）。可设置 false 不携带。
+    ,student_v: '1.0'
+
+    //自定义请求字段 【我自己增强了源码】
+    ,request: { 
+      tokenName: ['student_access_token', 'teacher_access_token'] //自动携带 token 的字段名（如：access_token）。可设置 false 不携带。
     }
     
     //自定义响应字段
