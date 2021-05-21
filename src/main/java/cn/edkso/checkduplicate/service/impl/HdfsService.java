@@ -65,6 +65,31 @@ public class HdfsService {
         return isOk;
     }
 
+    /**
+     * HDFS重命名文件 / 移动文件
+     * oldPathStr 源文件目录+文件全名（带后缀）
+     * newPathStr 新文件目录
+     */
+    public boolean renameFile(String oldPathStr, String newPathStr, String fileName) throws Exception {
+        if (StringUtils.isEmpty(oldPathStr) || StringUtils.isEmpty(newPathStr) || StringUtils.isEmpty(fileName)) {
+            return false;
+        }
+        FileSystem fs = getFileSystem();
+        // 原文件目标路径
+        Path oldPath = new Path(oldPathStr + fileName);
+        // 重命名目标路径
+        Path newPath = new Path(newPathStr);
+
+        //判断路径是否存在，或者是否创建成功
+        if (fs.exists(newPath) || fs.mkdirs(newPath)){
+            //啊移动/复制文件
+            boolean res = fs.rename(oldPath, newPath);
+            fs.close();
+            return res;
+        }
+        return false;
+    }
+
 
 
     /**

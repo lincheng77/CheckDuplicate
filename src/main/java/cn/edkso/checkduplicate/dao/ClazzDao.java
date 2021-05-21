@@ -15,4 +15,6 @@ public interface ClazzDao extends JpaRepository<Clazz, Integer> {
     Page<Clazz> findByNameAndGradeAndCollegeAndCounselor(Pageable pageable, String name, Integer grade, String college, String counselor);
 
     List<Clazz> findByName(String name);
+
+    List<Clazz> findAllByNameLike(String name);
 }

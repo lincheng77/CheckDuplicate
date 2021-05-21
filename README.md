@@ -1,0 +1,2 @@
+###jar包linux启动并开启热加载和远程调试
+nohup java -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 "-agentpath:/opt/module/jrebel/lib/libjrebel64.so" -Drebel.remoting_plugin=true -jar /opt/module/java/my-java-project/checkduplicate/checkduplicate-0.0.1-SNAPSHOT.jar &

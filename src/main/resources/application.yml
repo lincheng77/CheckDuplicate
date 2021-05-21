@@ -1,6 +1,16 @@
 server:
   port: 8080
+
+#------------------------------------------------------------热部署
+#debug: true
 spring:
+  #  devtools:
+  #    restart:
+  #      enabled: true  #设置开启热部署
+  #  freemarker:
+  #    cache: false    #页面不加载缓存，修改即时生效
+#------------------------------------------------------------热部署
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
@@ -22,3 +32,4 @@ spring:
 #开启knife4j增强
 knife4j:
   enable: true
+

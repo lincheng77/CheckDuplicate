@@ -49,6 +49,16 @@ public class ClazzController {
         return ResultVOUtil.success(clazzPage);
     }
 
+    @ApiOperation(value = "获取班级名称模糊查询班级")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "name" ,value = "班级名称", required = true),
+    })
+    @GetMapping("listByNameLike")
+    public ResultVO listByNameLike(String name){
+        List<Clazz> clazzList = clazzService.listByNameLike(name);
+        return ResultVOUtil.success(clazzList);
+    }
+
     @ApiOperation(value = "增加一条班级记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "name" ,value = "班级名称", required = true),

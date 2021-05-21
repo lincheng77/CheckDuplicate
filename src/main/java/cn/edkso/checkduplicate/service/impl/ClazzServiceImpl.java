@@ -50,6 +50,11 @@ public class ClazzServiceImpl implements ClazzService {
     }
 
     @Override
+    public List<Clazz> listByNameLike(String name) {
+        return clazzDao.findAllByNameLike(name);
+    }
+
+    @Override
     public void del(List<Clazz> clazzList) {
         try {
             clazzDao.deleteAll(clazzList);

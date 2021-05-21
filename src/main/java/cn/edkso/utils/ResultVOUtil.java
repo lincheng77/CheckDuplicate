@@ -112,6 +112,7 @@ public class ResultVOUtil {
         return resultVO;
     }
 
+    @Deprecated
     public static ResultVO success(Object data, TokenVO tokenVO) {
         ResultVO resultVO = new ResultVO();
         resultVO.setCode(0);

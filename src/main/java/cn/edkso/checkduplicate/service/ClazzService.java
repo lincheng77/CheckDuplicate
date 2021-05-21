@@ -15,4 +15,7 @@ public interface ClazzService {
     Clazz saveAndUpdate(Clazz clazz);
 
     Page<Clazz> listByPage(Integer page, Integer limit, Clazz clazz);
+
+    List<Clazz> listByNameLike(String name);
+
 }

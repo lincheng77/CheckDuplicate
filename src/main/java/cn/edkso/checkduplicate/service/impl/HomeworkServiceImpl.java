@@ -12,6 +12,7 @@ import cn.edkso.checkduplicate.exception.CDException;
 import cn.edkso.checkduplicate.service.HomeworkService;
 import cn.edkso.checkduplicate.service.StudentService;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.fs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ import javax.persistence.criteria.Predicate;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -133,5 +135,49 @@ public class HomeworkServiceImpl implements HomeworkService {
         };
 
         return (Page<HomeworkStudent>) homeworkStudentDao.findAll(specification,pageable);
+    }
+
+    @Override
+    public HomeworkStudent submitHomework(HomeworkStudent homeworkStudent, String tmpPath) {
+
+        //1. 拼接HDFS存储学生作业附件路径
+        String filePath = homeworkStudent.getFilePath(); //老师发布作业附件路径（目录）
+        Integer clazzId = homeworkStudent.getClazzId(); //班级Id
+        String studentFileRandomName = homeworkStudent.getStudentFileRandomName(); //学生提交作业附件随机名
+
+        String oldPathStr = tmpPath;
+        String newPathStr = filePath + "/" + clazzId + "/";
+
+
+        //2. 作业文件提交到HDFS（也就是移动）
+        try {
+            if(!hdfsService.renameFile(oldPathStr , newPathStr, studentFileRandomName)){
+                throw new CDException("文件系统发生异常，请尝试重新提交");
+            }
+        } catch (Exception e) {
+            throw new CDException("文件系统发生异常，请尝试重新提交");
+        }
+
+
+        //3. 修改作业的[总]上交人数
+        Optional<Homework> homeworkOptional = homeworkDao.findById(homeworkStudent.getHomeworkId());
+        Homework homework = homeworkOptional.get();
+        homework.setSubmitted(homework.getSubmitted() + 1);
+        homeworkDao.save(homework);
+
+        //4. 修改作业的[班级]上交人数
+        Optional<HomeworkClazz> homeworkClazzOptional = homeworkClazzDao.findByHomeworkIdAndClazzId(homeworkStudent.getHomeworkId() ,homeworkStudent.getClazzId());
+        HomeworkClazz homeworkClazz = homeworkClazzOptional.get();
+        homeworkClazz.setSubmitted(homeworkClazz.getSubmitted());
+        homeworkClazzDao.save(homeworkClazz);
+
+        //5. 修改作业-学生 记录
+        Optional<HomeworkStudent> homeworkStudentOptional = homeworkStudentDao.findById(homeworkStudent.getId());
+        HomeworkStudent homeworkStudentRes = homeworkStudentOptional.get();
+        homeworkStudentRes.setSubmitted(1);
+        homeworkStudentRes.setStudentFileName(homeworkStudent.getStudentFileName());
+        homeworkStudentRes.setStudentFilePath(newPathStr);
+        homeworkStudentRes.setStudentFileRandomName(studentFileRandomName);
+        return homeworkStudentDao.save(homeworkStudentRes);
     }
 }

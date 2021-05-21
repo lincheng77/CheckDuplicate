@@ -15,4 +15,6 @@ public interface HomeworkService {
     Page<HomeworkStudent> listPageForStudent(Integer page, Integer limit, Integer submitted,
                                              String startTime, String deadline);
 
+    HomeworkStudent submitHomework(HomeworkStudent homeworkStudent, String tmpPath);
+
 }

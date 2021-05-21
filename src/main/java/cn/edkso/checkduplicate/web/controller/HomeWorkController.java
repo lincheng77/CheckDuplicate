@@ -1,10 +1,7 @@
 package cn.edkso.checkduplicate.web.controller;
 
 import cn.edkso.checkduplicate.constant.ConfigDefault;
-import cn.edkso.checkduplicate.entry.Clazz;
-import cn.edkso.checkduplicate.entry.Homework;
-import cn.edkso.checkduplicate.entry.HomeworkStudent;
-import cn.edkso.checkduplicate.entry.Teacher;
+import cn.edkso.checkduplicate.entry.*;
 import cn.edkso.checkduplicate.enums.ResultEnum;
 import cn.edkso.checkduplicate.exception.CDException;
 
@@ -55,6 +52,46 @@ public class HomeWorkController {
     @Autowired
     private HdfsService hdfsService;
 
+    @ApiOperation(value = "文件上传")
+    @RequestMapping("/upload")
+    public ResultVO upload(MultipartFile file) {
+        try {
+            //1 获得文件输入流
+            FileInputStream in = (FileInputStream) file.getInputStream();
+            //2 创建连接
+            Configuration conf = new Configuration();
+            //3 获取连接对象
+            FileSystem fs = FileSystem.get(URI.create(ConfigDefault.HDFS_ADDRESS), conf, ConfigDefault.HDFS_USER);
+
+            //4 流上传文件
+            String fileName = FileUtils.getFileName(file);
+            String fileRandomName = FileUtils.rename(file);
+//            String tmpPath = "/checkduplicate/tmp/" + fileRandomName;
+            String tmpPath = "/checkduplicate/tmp/";
+            FSDataOutputStream out = fs.create(new Path(tmpPath + fileRandomName));//在hdfs上创建路径
+            byte[] b = new byte[1024 * 1024];
+            int read = 0;
+            while ((read = in.read(b)) > 0) {
+                out.write(b, 0, read);
+            }
+
+            //5 关闭资源
+            in.close();
+            out.close();
+            fs.close();
+
+            //6 返回
+            Map<String,Object> map = new HashMap<>();
+            map.put("fileName",fileName);
+            map.put("fileRandomName",fileRandomName);
+            map.put("tmpPath",tmpPath);
+            return ResultVOUtil.success(map);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            return ResultVOUtil.error(ResultEnum.UPLOAD_ERROR);
+        }
+    }
+
     @ApiOperation(value = "增加一条作业记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "clazzIds" ,value = "学科ids", required = true),
@@ -63,14 +100,13 @@ public class HomeWorkController {
             @ApiImplicitParam(name = "deadline" ,value = "截止日期", required = true),
             @ApiImplicitParam(name = "filePath" ,value = "作业附件路径", required = true),
     })
-    @PostMapping("add")
-    public ResultVO add(String clazzIds, String content,
-                        Integer subjectId,
-                        String filePath, @RequestParam Timestamp deadline){ //使用@RequestParam 可以让swagger多出来请求参数
+    @PostMapping("add")//使用@RequestParam 可以让swagger多出来请求参数
+    public ResultVO add(String clazzIds, String content, Integer subjectId, String filePath,
+                        @RequestParam Timestamp deadline){
 
 
         //1. 通过token，从redis获取用户
-        String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.TOKEN_NAME);
+        String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.TEACHER_TOKEN_NAME);
         Teacher teacher = (Teacher) redisTemplate.opsForValue().get(access_token);
         if(teacher == null){
             return ResultVOUtil.error(ResultEnum.NOT_LOGGED_IN); //没有登录
@@ -94,8 +130,6 @@ public class HomeWorkController {
     }
 
 
-
-
     @ApiOperation(value = "查询当前学生作业记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "submitted" ,value = "提交状态", required = false),
@@ -112,57 +146,6 @@ public class HomeWorkController {
 
         Page<HomeworkStudent> homeworkStudentPage = homeworkService.listPageForStudent(page, limit,submitted,startTime,deadline);
         return ResultVOUtil.success(homeworkStudentPage);
-    }
-
-    @ApiOperation(value = "提交作业")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "submitted" ,value = "提交状态", required = false),
-
-            @ApiImplicitParam(name = "limit" ,value = "每页限制数", required = true),
-    })
-    @GetMapping("submitHomework")
-    public ResultVO submitHomework(Integer id, Integer homeworkId, Integer clazzId,
-                                   String fileName, String fileRandomName, String tmpPath){
-
-        return null;
-    }
-    @ApiOperation(value = "文件上传")
-    @RequestMapping("/upload")
-    public ResultVO upload(MultipartFile file) {
-        try {
-            //1 获得文件输入流
-            FileInputStream in = (FileInputStream) file.getInputStream();
-            //2 创建连接
-            Configuration conf = new Configuration();
-            //3 获取连接对象
-            FileSystem fs = FileSystem.get(URI.create(ConfigDefault.HDFS_ADDRESS), conf, ConfigDefault.HDFS_USER);
-
-            //4 流上传文件
-            String fileName = FileUtils.getFileName(file);
-            String fileRandomName = FileUtils.rename(file);
-            String tmpPath = "/checkduplicate/tmp/" + fileRandomName;
-            FSDataOutputStream out = fs.create(new Path(tmpPath));//在hdfs上创建路径
-            byte[] b = new byte[1024 * 1024];
-            int read = 0;
-            while ((read = in.read(b)) > 0) {
-                out.write(b, 0, read);
-            }
-
-            //5 关闭资源
-            in.close();
-            out.close();
-            fs.close();
-
-            //6 返回
-            Map<String,Object> map = new HashMap<>();
-            map.put("fileName",fileName);
-            map.put("fileRandomName",fileRandomName);
-            map.put("tmpPath",tmpPath);
-            return ResultVOUtil.success(map);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            return ResultVOUtil.error(ResultEnum.UPLOAD_ERROR);
-        }
     }
 
     @ApiOperation(value = "文件下载")
@@ -210,5 +193,39 @@ public class HomeWorkController {
 
         System.out.println("OVER");
         return null;
+    }
+
+
+    @ApiOperation(value = "提交作业")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id" ,value = "作业-学生Id", required = true),
+            @ApiImplicitParam(name = "homeworkId" ,value = "作业Id", required = true),
+            @ApiImplicitParam(name = "clazzId" ,value = "班级Id", required = true),
+            @ApiImplicitParam(name = "filePath" ,value = "老师作业目录", required = true),
+            @ApiImplicitParam(name = "studentFileName" ,value = "学生提交作业文件名", required = true),
+            @ApiImplicitParam(name = "studentFileRandomName" ,value = "学生提交作业随机名", required = true),
+            @ApiImplicitParam(name = "tmpPath" ,value = "学生提交作业HDFS临时路径", required = true),
+    })
+
+    @PostMapping("submitHomework")
+    public ResultVO submitHomework(HomeworkStudent homeworkStudent, String tmpPath){
+        //1. 通过token，从redis获取用户
+        String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.STUDENT_TOKEN_NAME);
+        Student student = (Student) redisTemplate.opsForValue().get(access_token);
+        if(student == null){
+            return ResultVOUtil.error(ResultEnum.NOT_LOGGED_IN); //没有登录
+        }
+
+
+        try {
+            HomeworkStudent homeworkStudentRes = homeworkService.submitHomework(homeworkStudent, tmpPath);
+            if (homeworkStudentRes != null){
+                return ResultVOUtil.success(homeworkStudentRes);
+            }
+        }catch (CDException e){
+            return ResultVOUtil.error(e.getMessage());
+        }
+        return ResultVOUtil.error(ResultEnum.PARAMS_ERROR_OR_SYSTEM_EXCEPTION);
+
     }
 }
