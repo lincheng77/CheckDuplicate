@@ -88,7 +88,8 @@ layui.define(['table', 'form'], function(exports){
       ,{field: 'grade', title: '上交人数'}
       ,{field: 'college', title: '总人数'}
       ,{field: 'counselor', title: '截止日期', sort: true}
-      ,{title: '操作', minWidth: 150, align: 'center', fixed: 'right', toolbar: '#table-homework-list'}
+      ,{title: '上交详情', minWidth: 150, align: 'center', fixed: 'right', toolbar: '#table-homework-list1'}
+      ,{title: '操作', minWidth: 150, align: 'center', fixed: 'right', toolbar: '#table-homework-list2'}
     ]]
     ,page: true
     ,limit: 10

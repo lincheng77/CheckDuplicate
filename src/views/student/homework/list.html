@@ -68,11 +68,11 @@
           {{#  } }}
         </script>
         <script type="text/html" id="table-content-list">
-          <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="details">作业详情</a>
+          <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="details"><i class="layui-icon layui-icon-form"></i>作业详情</a>
           {{#  if(d.filePath != null ){ }}
-            <a class="layui-btn layui-bg-cyan layui-btn-xs" lay-event="down">下载附件</a>
+            <a class="layui-btn layui-bg-cyan layui-btn-xs" lay-event="down"><i class="layui-icon layui-icon-download-circle"></i>下载附件</a>
           {{#  } else { }}
-            <a class="layui-btn layui-btn-disabled layui-btn-xs">无需附件</a>
+            <a class="layui-btn layui-btn-disabled layui-btn-xs"><i class="layui-icon layui-icon-ok"></i>无需附件</a>
           {{#  } }}
 
           {{#  
@@ -80,17 +80,17 @@
             var deadline = new Date(Date.parse(d.deadline));
           }}
           {{#  if(d.submitted == 1 ){ }}
-            <a class="layui-btn layui-btn-primary layui-btn-xs">已交作业</a>
+            <a class="layui-btn layui-btn-primary layui-btn-xs"><i class="layui-icon layui-icon-face-smile"></i>已交作业</a>
           {{#  } else if(deadline < currenTime) { }}
-            <a class="layui-btn layui-btn-disabled layui-btn-xs" >过期作业</a>    
+            <a class="layui-btn layui-btn-disabled layui-btn-xs" ><i class="layui-icon layui-icon-face-cry"></i>过期作业</a>    
           {{#  } else { }}
             <button type="button" class="layui-btn layui-btn-xs" lay-event="submit-homework" id="submit-homework">
-              上交作业
+              <i class="layui-icon layui-icon-upload-drag"></i>上交作业
             </button>
           {{#  } }}
         </script>
-        
       </div>
+
       <button style="display: none;" type="button" class="layui-btn" id="homework-file">
         <i class="layui-icon">&#xe67c;</i>上传文件
       </button>
@@ -119,12 +119,33 @@
       var field = data.field;
     
 
+
       //执行重载
       table.reload('LAY-app-homework-list', {
         where: field
       });
     });
   
+    //执行一个laydate实例【日期选择】
+    laydate.render({
+      elem: '#startTime' //指定元素
+      // ,show: true //直接显示
+      ,trigger: 'click' //采用click弹出
+      ,theme: 'molv'
+      ,format: 'yyyy-MM-dd HH:mm:ss' //可任意组合
+      ,type: 'datetime'
+    });
+    //执行一个laydate实例【日期选择】
+    laydate.render({
+      elem: '#deadline' //指定元素
+      // ,show: true //直接显示
+      ,trigger: 'click' //采用click弹出
+      ,theme: 'molv'
+      ,format: 'yyyy-MM-dd HH:mm:ss' //可任意组合
+      ,type: 'datetime'
+    });
+
+
       //执行实例【文件上传】
   uploadInst = upload.render({
     elem: '#submit-homework' //绑定元素
