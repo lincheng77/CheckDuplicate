@@ -70,14 +70,14 @@
             </a>
           </li>
           <li class="layui-nav-item" lay-unselect>
-            <a href="javascript:;">
-              <cite>贤心</cite>
+            <a  href="javascript:;">
+                <div id="usernameA" ></div>
             </a>
             <dl class="layui-nav-child">
               <dd><a lay-href="set/user/info.html">基本资料</a></dd>
               <dd><a lay-href="set/user/password.html">修改密码</a></dd>
               <hr>
-              <dd layadmin-event="logout" style="text-align: center;"><a>退出</a></dd>
+              <dd layadmin-event="logout_student" style="text-align: center;"><a>退出</a></dd>
             </dl>
           </li>
 
@@ -165,19 +165,20 @@
       base: '../../layuiadmin/' //静态资源所在路径
     }).extend({
       index: 'lib/index' //主入口模块
-    }).use('index');
+    }).use('index', function(){
+      var $ = layui.$
+      ,setter = layui.setter
+      ,admin = layui.admin
+      ,form = layui.form;
+
+      //从本地获取登录学生信息
+      var student = layui.data(setter.tableName).student
+      $("#usernameA").html("<cite>" + student.name + "</cite>")
+      
+
+    })
   </script>
 
-  <!-- 百度统计 -->
-  <script>
-    var _hmt = _hmt || [];
-    (function () {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?d214947968792b839fd669a4decaaffc";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-  </script>
 </body>
 
 </html>

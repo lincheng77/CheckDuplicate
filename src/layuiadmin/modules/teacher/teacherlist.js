@@ -75,19 +75,20 @@ layui.define(['table', 'form'], function(exports){
     }
   });
 
-  //作业管管理
+
+  //作业管理
   table.render({
     elem: '#LAY-app-homework-list'
     ,url: layui.setter.reqUrl + '/homework/listByPage' //模拟接口
     ,cols: [[
       {type: 'checkbox', fixed: 'left'}
       ,{field: 'id', width: 100, title: '作业ID', sort: true}
-      ,{field: 'name', title: '班级名称', minWidth: 100}
-      ,{field: 'grade', title: '班级年级'}
-      ,{field: 'college', title: '学院'}
-      ,{field: 'counselor', title: '辅导员', sort: true}
-      ,{field: 'state', title: '状态', templet: '#buttonTpl', minWidth: 80, align: 'center'}
-      ,{title: '操作', minWidth: 150, align: 'center', fixed: 'right', toolbar: '#table-content-list'}
+      ,{field: 'name', title: '作业名称', minWidth: 100}
+      ,{field: 'name', title: '作业科目', minWidth: 100}
+      ,{field: 'grade', title: '上交人数'}
+      ,{field: 'college', title: '总人数'}
+      ,{field: 'counselor', title: '截止日期', sort: true}
+      ,{title: '操作', minWidth: 150, align: 'center', fixed: 'right', toolbar: '#table-homework-list'}
     ]]
     ,page: true
     ,limit: 10
