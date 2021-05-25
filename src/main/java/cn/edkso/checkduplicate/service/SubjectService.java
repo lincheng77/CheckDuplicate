@@ -17,4 +17,7 @@ public interface SubjectService {
     Page<Subject> listByPage(Integer page, Integer limit, Subject subject);
 
     List<Subject> listByNameLike(String name);
+
+    Subject findById(Integer subjectId);
+
 }

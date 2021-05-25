@@ -21,6 +21,7 @@ public class HdfsService {
      */
     private Configuration getConfiguration() {
         Configuration configuration = new Configuration();
+        configuration.set("dfs.client.use.datanode.hostname", "true");
         return configuration;
     }
 
@@ -44,6 +45,7 @@ public class HdfsService {
      * oldPathStr 源文件目录+文件全名（带后缀）
      * newPathStr 新文件目录
      */
+    @Deprecated
     public boolean renameFile(String oldPathStr, String newPathStr) throws Exception {
         if (StringUtils.isEmpty(oldPathStr) || StringUtils.isEmpty(newPathStr)) {
             return false;

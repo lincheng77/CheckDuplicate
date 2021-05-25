@@ -13,4 +13,6 @@ public interface StudentService {
 
     List<Student> findAllByClazzId(Integer id);
 
+    Student update(Student oldStudent);
+
 }

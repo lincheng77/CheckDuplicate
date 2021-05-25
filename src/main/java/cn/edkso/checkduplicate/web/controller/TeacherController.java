@@ -1,19 +1,17 @@
 package cn.edkso.checkduplicate.web.controller;
 
 import cn.edkso.checkduplicate.constant.ConfigDefault;
-import cn.edkso.checkduplicate.entry.Student;
 import cn.edkso.checkduplicate.entry.Teacher;
 import cn.edkso.checkduplicate.enums.ResultEnum;
 import cn.edkso.checkduplicate.service.TeacherService;
 import cn.edkso.checkduplicate.vo.ResultVO;
-import cn.edkso.checkduplicate.vo.TokenVO;
 import cn.edkso.utils.ResultVOUtil;
 import cn.edkso.utils.TokenUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import jdk.nashorn.internal.parser.Token;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,14 +41,17 @@ public class TeacherController {
     })
     @PostMapping("login")
     public ResultVO login(String username, String password, HttpServletRequest request){
-
         //1. 通过token，从redis获取用户
         String token = request.getHeader(ConfigDefault.TEACHER_TOKEN_NAME);
         Teacher teacher;
-        if (token != null) {
+
+        if (StringUtils.isNotBlank(token)) {
             teacher = (Teacher) redisTemplate.opsForValue().get(token);
             if (teacher != null) {
-                return ResultVOUtil.success(teacher);
+                Map<String, Object> map = new HashMap<>();
+                map.put(ConfigDefault.TEACHER_TOKEN_NAME, token);
+                map.put("teacher", teacher);
+                return ResultVOUtil.success(map);
             }
         }
 
@@ -71,7 +72,6 @@ public class TeacherController {
             map.put("teacher", teacher);
             return ResultVOUtil.success(map);
         }
-
         return ResultVOUtil.error(ResultEnum.LOGIN_ERROR);
     }
 }

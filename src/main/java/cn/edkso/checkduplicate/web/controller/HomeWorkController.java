@@ -1,6 +1,7 @@
 package cn.edkso.checkduplicate.web.controller;
 
 import cn.edkso.checkduplicate.constant.ConfigDefault;
+import cn.edkso.checkduplicate.constant.NormalDefault;
 import cn.edkso.checkduplicate.entry.*;
 import cn.edkso.checkduplicate.enums.ResultEnum;
 import cn.edkso.checkduplicate.exception.CDException;
@@ -10,6 +11,8 @@ import cn.edkso.checkduplicate.service.impl.HdfsService;
 import cn.edkso.checkduplicate.vo.DataVO;
 import cn.edkso.checkduplicate.vo.ResultVO;
 import cn.edkso.utils.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -20,6 +23,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -30,10 +35,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 
+import javax.persistence.Transient;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -62,6 +69,8 @@ public class HomeWorkController {
             Configuration conf = new Configuration();
             //3 获取连接对象
             FileSystem fs = FileSystem.get(URI.create(ConfigDefault.HDFS_ADDRESS), conf, ConfigDefault.HDFS_USER);
+
+//            FileSystem fs = hdfsService.getFileSystem();
 
             //4 流上传文件
             String fileName = FileUtils.getFileName(file);
@@ -95,15 +104,19 @@ public class HomeWorkController {
     @ApiOperation(value = "增加一条作业记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "clazzIds" ,value = "学科ids", required = true),
-            @ApiImplicitParam(name = "subjectId" ,value = "作业科目", required = true),
+            @ApiImplicitParam(name = "name" ,value = "学科ids", required = true),
             @ApiImplicitParam(name = "content" ,value = "作业内容", required = true),
+            @ApiImplicitParam(name = "fileName" ,value = "作业附件路径", required = true),
+            @ApiImplicitParam(name = "tmpPath" ,value = "HDFS临时路径", required = true),
+            @ApiImplicitParam(name = "fileRandomName" ,value = "作业附件随机名", required = true),
+            @ApiImplicitParam(name = "subjectId" ,value = "作业科目", required = true),
             @ApiImplicitParam(name = "deadline" ,value = "截止日期", required = true),
-            @ApiImplicitParam(name = "filePath" ,value = "作业附件路径", required = true),
+
     })
     @PostMapping("add")//使用@RequestParam 可以让swagger多出来请求参数
-    public ResultVO add(String clazzIds, String content, Integer subjectId, String filePath,
-                        @RequestParam Timestamp deadline){
-
+    public ResultVO add(String clazzIds,String name, String content,
+                        String fileName, String tmpPath, String fileRandomName,
+                        Integer subjectId, @RequestParam Timestamp deadline){
 
         //1. 通过token，从redis获取用户
         String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.TEACHER_TOKEN_NAME);
@@ -113,13 +126,23 @@ public class HomeWorkController {
         }
         String[] clazzIdArr = clazzIds.split(",");
         Homework homework = new Homework();
+        homework.setName(name);
         homework.setContent(content);
         homework.setDeadline(deadline);
-        homework.setFilePath(filePath);
+
+        homework.setState(1);
+        homework.setSubmitted(0);
+        homework.setTotal(0);
+
+        homework.setFileName(fileName);
+        homework.setFileRandomName(fileRandomName);
+
         homework.setSubjectId(subjectId);
         homework.setTeacherId(teacher.getId());
+
+        //subjectName 和 path没有设置还
         try {
-            Homework homeWorkRes = homeworkService.save(clazzIdArr, homework);
+            Homework homeWorkRes = homeworkService.save(clazzIdArr, homework,tmpPath);
             if (homeWorkRes != null){
                 return ResultVOUtil.success(homeWorkRes);
             }
@@ -227,5 +250,41 @@ public class HomeWorkController {
         }
         return ResultVOUtil.error(ResultEnum.PARAMS_ERROR_OR_SYSTEM_EXCEPTION);
 
+    }
+
+
+    @ApiOperation(value = "查询当前教师作业记录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page" ,value = "当前页数", required = true),
+            @ApiImplicitParam(name = "limit" ,value = "每页限制数", required = true),
+            @ApiImplicitParam(name = "name" ,value = "作业名称", required = false),
+            @ApiImplicitParam(name = "subjectName" ,value = "学科名称", required = false),
+            @ApiImplicitParam(name = "startTime" ,value = "开始日期", required = false),
+            @ApiImplicitParam(name = "deadline" ,value = "截止日期", required = false),
+    })
+
+    @GetMapping("listByPage")
+    public ResultVO listByPage(Integer page, Integer limit,
+                               String name , String subjectName,
+                               String startTime,String deadline){
+
+        System.out.println("啦啦啦啦");
+        Page<Homework> homeworkPage = homeworkService.listByPage(page, limit,name,subjectName,startTime,deadline);
+        return ResultVOUtil.success(homeworkPage);
+    }
+
+
+    @ApiOperation(value = "删除一条或多条作业记录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "json" ,value = "需要删除记录组成的json", required = true),
+    })
+    @PostMapping("del")
+    public ResultVO del(@RequestBody List<Homework> homeworkList){
+        try {
+            homeworkService.del(homeworkList);
+            return ResultVOUtil.success(NormalDefault.DEL_SUCCESS);
+        }catch (CDException e){
+            return ResultVOUtil.error(e.getMessage());
+        }
     }
 }

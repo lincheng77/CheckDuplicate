@@ -31,22 +31,24 @@ public class ClazzServiceImpl implements ClazzService {
         //切记 datajpa从0页开始
 
         Pageable pageable = PageRequest.of(page -1,limit);
-//        Page<Clazz> ClazzPage = ClazzDao.findAll(pageable);
 
-        if (StringUtils.isBlank(clazz.getName())){
-            clazz.setName(null);
+        ExampleMatcher matcher = ExampleMatcher.matching();
+        Clazz matcherClazz = new Clazz();
+        if (StringUtils.isNotBlank(clazz.getName())){
+            matcher = matcher.withMatcher("name" , ExampleMatcher.GenericPropertyMatchers.contains());
+            matcherClazz.setName(clazz.getName());
         }
-        if (StringUtils.isBlank(clazz.getCounselor())){
-            clazz.setCounselor(null);
+        if (StringUtils.isNotBlank(clazz.getCounselor())){
+            matcher = matcher.withMatcher("counselor" , ExampleMatcher.GenericPropertyMatchers.contains());
+            matcherClazz.setCounselor(clazz.getCounselor());
         }
-        if (StringUtils.isBlank(clazz.getCollege())){
-            clazz.setCollege(null);
+        if (StringUtils.isNotBlank(clazz.getCollege())){
+            matcher = matcher.withMatcher("college" , ExampleMatcher.GenericPropertyMatchers.contains());
+            matcherClazz.setCollege(clazz.getCollege());
         }
-        Example<Clazz> example = Example.of(clazz);
+        Example<Clazz> example = Example.of(clazz,matcher);
 
-        Page<Clazz> clazzPage = clazzDao.findAll(example, pageable);
-
-        return clazzPage;
+        return clazzDao.findAll(example, pageable);
     }
 
     @Override

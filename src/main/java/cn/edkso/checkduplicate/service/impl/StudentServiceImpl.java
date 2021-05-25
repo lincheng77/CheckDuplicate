@@ -43,5 +43,10 @@ public class StudentServiceImpl implements StudentService {
         return studentDao.findAllByClazzId(id);
     }
 
+    @Override
+    public Student update(Student oldStudent) {
+        return studentDao.save(oldStudent);
+    }
+
 
 }

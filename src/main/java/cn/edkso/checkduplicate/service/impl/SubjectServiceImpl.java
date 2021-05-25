@@ -92,4 +92,9 @@ public class SubjectServiceImpl implements SubjectService {
 
         return subjectDao.findByNameLike(name);
     }
+
+    @Override
+    public Subject findById(Integer subjectId) {
+        return subjectDao.findById(subjectId).get();
+    }
 }

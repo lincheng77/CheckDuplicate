@@ -5,13 +5,16 @@ import cn.edkso.checkduplicate.entry.Student;
 import cn.edkso.checkduplicate.enums.ResultEnum;
 import cn.edkso.checkduplicate.service.StudentService;
 import cn.edkso.checkduplicate.vo.ResultVO;
+import cn.edkso.utils.MD5Utils;
 import cn.edkso.utils.ResultVOUtil;
+import cn.edkso.utils.ServletUtils;
 import cn.edkso.utils.TokenUtils;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,10 +47,14 @@ public class StudentController {
         //1. 通过token，从redis获取用户
         String token = request.getHeader(ConfigDefault.STUDENT_TOKEN_NAME);
         Student student;
-        if (token != null) {
+
+        if (StringUtils.isNotBlank(token)) {
             student = (Student) redisTemplate.opsForValue().get(token);
             if (student != null) {
-                return ResultVOUtil.success(student);
+                Map<String, Object> map = new HashMap<>();
+                map.put(ConfigDefault.STUDENT_TOKEN_NAME, token);
+                map.put("student", student);
+                return ResultVOUtil.success(map);
             }
         }
 
@@ -68,7 +75,6 @@ public class StudentController {
             map.put("student", student);
             return ResultVOUtil.success(map);
         }
-
         return ResultVOUtil.error(ResultEnum.LOGIN_ERROR);
     }
 
@@ -90,17 +96,43 @@ public class StudentController {
     @ApiOperation(value = "学生修改")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "clazzId" ,value = "班级Id", required = false),
-            @ApiImplicitParam(name = "password" ,value = "账号密码", required = false),
+            @ApiImplicitParam(name = "oldPassword" ,value = "旧账号密码", required = false),
+            @ApiImplicitParam(name = "password" ,value = "修改的密码", required = false),
             @ApiImplicitParam(name = "name" ,value = "学生姓名", required = false),
             @ApiImplicitParam(name = "state" ,value = "学生状态", required = false),
     })
     @ApiOperationSupport(ignoreParameters = {"id","username","createTime","updateTime"})
     @PostMapping("update")
-    public ResultVO update(Student student){
-//        Student student = studentService.register(username,password,name);
-//        if (student != null){
-//            return ResultVOUtil.success(student);
-//        }
+    public ResultVO update(Student student, String oldPassword){
+        //1. 通过token，从redis获取用户
+        String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.STUDENT_TOKEN_NAME);
+        Student oldStudent = (Student) redisTemplate.opsForValue().get(access_token);
+        if(oldStudent == null){
+            return ResultVOUtil.error(ResultEnum.NOT_LOGGED_IN); //没有登录
+        }
+
+        if (!MD5Utils.md5(oldPassword).equals(oldStudent.getPassword())){
+            return ResultVOUtil.error(ResultEnum.OLD_PASWORD_ERROR); //原始密码错误
+        }
+
+        if (StringUtils.isNotBlank(student.getPassword())){
+            oldStudent.setPassword(MD5Utils.md5(student.getPassword()));
+        }
+        if(student.getClazzId() != null){
+            oldStudent.setClazzId(student.getClazzId());
+        }
+        if(student.getState() != null){
+            oldStudent.setState(student.getState());
+        }
+
+        if (StringUtils.isNotBlank(student.getName())){
+            oldStudent.setName(student.getName());
+        }
+
+        Student studentRes = studentService.update(oldStudent);
+        if (studentRes != null){
+            return ResultVOUtil.success(studentRes);
+        }
         return ResultVOUtil.error(ResultEnum.REGISTER_ERROR);
     }
 }

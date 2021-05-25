@@ -19,16 +19,20 @@ public class Homework {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
+    private String name;
     private String content;
+
     private String filePath;
+    private String fileName;
+    private String fileRandomName;
 
     private Integer subjectId;
     private Integer teacherId;
+    private String subjectName;
 
+    private Integer state;
 
     private Integer submitted;
-
     private Integer total;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
