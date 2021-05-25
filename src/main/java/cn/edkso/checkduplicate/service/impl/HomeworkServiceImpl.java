@@ -1,6 +1,7 @@
 package cn.edkso.checkduplicate.service.impl;
 
 
+import cn.edkso.checkduplicate.constant.ExceptionDefault;
 import cn.edkso.checkduplicate.dao.HomeworkClazzDao;
 import cn.edkso.checkduplicate.dao.HomeworkDao;
 import cn.edkso.checkduplicate.dao.HomeworkStudentDao;
@@ -332,5 +333,13 @@ public class HomeworkServiceImpl implements HomeworkService {
     @Override
     public void del(List<Homework> homeworkList) {
 
+
+        try {
+            clazzDao.deleteAll(clazzList);
+        } catch (Exception e){
+            throw new CDException(ExceptionDefault.DEL_ERROR);
+        }
     }
+
+
 }
