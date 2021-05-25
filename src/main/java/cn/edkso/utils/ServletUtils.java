@@ -10,6 +10,7 @@ import javax.servlet.http.HttpSession;
 
 public class ServletUtils {
 
+    //异步获取不到
     public static ServletRequestAttributes getRequestAttributes(){
 
         return (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();

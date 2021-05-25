@@ -7,6 +7,7 @@ import cn.edkso.checkduplicate.dao.HomeworkDao;
 import cn.edkso.checkduplicate.dao.HomeworkStudentDao;
 import cn.edkso.checkduplicate.entry.*;
 import cn.edkso.checkduplicate.exception.CDException;
+import cn.edkso.checkduplicate.service.ClazzService;
 import cn.edkso.checkduplicate.service.HomeworkService;
 import cn.edkso.checkduplicate.service.StudentService;
 import cn.edkso.checkduplicate.service.SubjectService;
@@ -42,6 +43,8 @@ public class HomeworkServiceImpl implements HomeworkService {
     private StudentService studentService;
     @Autowired
     private SubjectService subjectService;
+    @Autowired
+    private ClazzService clazzService;
 
     @Override
     public Homework save(String[] clazzIdArr,  Homework homeWork) {
@@ -101,7 +104,7 @@ public class HomeworkServiceImpl implements HomeworkService {
 
     @Override
     public Page<HomeworkStudent> listPageForStudent(Integer page, Integer limit, Integer submitted
-            , String startTime, String deadline) {
+            , String startTime, String deadline, Integer studentId) {
 
         Pageable pageable = PageRequest.of(page -1,limit);
 
@@ -109,6 +112,9 @@ public class HomeworkServiceImpl implements HomeworkService {
         Specification specification = (root, cq, cb) -> {
 
             Predicate predicate = cb.conjunction();
+            //增加筛选条件0(当前学生id)
+            predicate.getExpressions().add(cb.equal(root.get("studentId"), studentId));
+
             //增加筛选条件1(可用)
             predicate.getExpressions().add(cb.equal(root.get("state"), 1));
             //增加筛选条件2（日期）
@@ -133,6 +139,56 @@ public class HomeworkServiceImpl implements HomeworkService {
         };
 
         return (Page<HomeworkStudent>) homeworkStudentDao.findAll(specification,pageable);
+    }
+
+    @Override
+    public Page<HomeworkStudent> listByPageForDetails(Integer page, Integer limit,
+             Integer homeworkId, Integer submitted, String startTime, String deadline, Integer isCheck, Integer clazzId) {
+
+        Pageable pageable = PageRequest.of(page -1,limit);
+
+        Specification specification = (root, cq, cb) -> {
+            Predicate predicate = cb.conjunction();
+            //增加筛选条件-2(作业id)
+            predicate.getExpressions().add(cb.equal(root.get("homeworkId"), homeworkId));
+
+            //增加筛选条件-1(查重情况)
+            if(isCheck != null){
+                predicate.getExpressions().add(cb.equal(root.get("state"), isCheck));
+            }
+            //增加筛选条件0(班级id)
+            if(isCheck != null){
+                predicate.getExpressions().add(cb.equal(root.get("clazzId"), clazzId));
+            }
+
+            //增加筛选条件1(可用)
+            predicate.getExpressions().add(cb.equal(root.get("state"), 1));
+
+            //增加筛选条件2（日期）
+            {
+                if(StringUtils.isNotBlank(startTime) && StringUtils.isNotBlank(deadline)){
+                    predicate.getExpressions()
+                            .add(cb.between(root.get("deadline"), Timestamp.valueOf(startTime), Timestamp.valueOf(deadline)));
+                }else if(StringUtils.isNotBlank(startTime)){
+                    predicate.getExpressions()
+                            .add(cb.between(root.get("deadline"), Timestamp.valueOf(startTime), Timestamp.valueOf("9999-12-12 23:59:59")));
+                }else if(StringUtils.isNotBlank(deadline)){
+                    predicate.getExpressions().add(cb.between(root.get("deadline"), Timestamp.valueOf("1970-01-01 00:00:00"), Timestamp.valueOf(deadline)));
+                }
+            }
+            //增加筛选条件3（提交状态）
+            if (submitted != null && submitted != -1){
+                predicate.getExpressions().add(cb.equal(root.get("submitted"), submitted));
+            }
+            //增加筛选条件4（截止日期排序）
+            cq.orderBy(cb.desc(root.get("deadline")));
+
+
+
+            return predicate;
+        };
+
+        return null;
     }
 
     @Override
@@ -219,7 +275,10 @@ public class HomeworkServiceImpl implements HomeworkService {
     }
 
     @Override
-    public Page<Homework> listByPage(Integer page, Integer limit, String name, String subjectName, String startTime, String deadline) {
+    public Page<Homework> listByPage(Integer page, Integer limit,
+                                     String name, String subjectName,
+                                     String startTime, String deadline,
+                                     Integer teacherId) {
         //切记 datajpa从0页开始
 
         Pageable pageable = PageRequest.of(page -1,limit);
@@ -227,6 +286,10 @@ public class HomeworkServiceImpl implements HomeworkService {
         Specification specification = (root, cq, cb) -> {
 
             Predicate predicate = cb.conjunction();
+
+            //增加筛选条件0(当前学生id)
+            predicate.getExpressions().add(cb.equal(root.get("teacherId"), teacherId));
+
             //增加筛选条件1(可用)
             if (StringUtils.isNotBlank(name)){
                 predicate.getExpressions().add(cb.like(root.get("name"), "%" + name + "%"));
@@ -277,8 +340,9 @@ public class HomeworkServiceImpl implements HomeworkService {
             throw new CDException("文件系统发生异常，请尝试重新提交");
         }
 
-        //3. 修改数据库文件路径
+        //3. 修改作业数据库文件路径 和 学科信息
         homeworkRes.setFilePath(newPathStr);
+        homeworkRes.setSubjectName(subject.getName());
         homeworkRes = homeworkDao.save(homeworkRes);
 
 
@@ -287,9 +351,13 @@ public class HomeworkServiceImpl implements HomeworkService {
         //4. 保存作业-班级List
         List<HomeworkClazz> homeworkClazzList = new ArrayList<>();
         for (String clazzId : clazzIdArr) {
+            //4-1. 查询班级
+            Clazz clazz = clazzService.findById(Integer.valueOf(clazzId));
+
             HomeworkClazz homeworkClazz = new HomeworkClazz();
             homeworkClazz.setHomeworkId(homeworkRes.getId());
             homeworkClazz.setClazzId(Integer.valueOf(clazzId));
+            homeworkClazz.setClazzName(clazz.getName());
             homeworkClazz.setSubmitted(0);
             homeworkClazz.setTotal(0);
             homeworkClazz.setState(1);
@@ -332,14 +400,115 @@ public class HomeworkServiceImpl implements HomeworkService {
 
     @Override
     public void del(List<Homework> homeworkList) {
-
-
         try {
-            clazzDao.deleteAll(clazzList);
+            //1. 删除作业
+            homeworkDao.deleteAll(homeworkList);
+
+            //2. 创建作业-班级集合 / 作业-学生集合
+            List<Integer> homeworkIdList = new ArrayList<>();
+
+            List<HomeworkClazz> homeworkClazzList = new ArrayList<>();
+            List<HomeworkStudent> homeworkStudentList = new ArrayList<>();
+            for (Homework homework : homeworkList) {
+                homeworkClazzList.addAll(homeworkClazzDao.findAllByHomeworkId(homework.getId()));
+                homeworkStudentList.addAll(homeworkStudentDao.findAllByHomeworkId(homework.getId()));
+
+            }
+
+            //3. 删除下属作业-班级
+            homeworkClazzDao.deleteAll(homeworkClazzList);
+            //4. 删除下属作业-学生
+            homeworkStudentDao.deleteAll(homeworkStudentList);
+
         } catch (Exception e){
             throw new CDException(ExceptionDefault.DEL_ERROR);
         }
     }
+
+    @Override
+    public List<HomeworkStudent> listHomeworkStudent(Integer id) {
+        return homeworkStudentDao.findAllByHomeworkId(id);
+    }
+
+    @Override
+    public List<HomeworkClazz> listHomeworkClazz(Integer homeworkId) {
+        return homeworkClazzDao.findAllByHomeworkId(homeworkId);
+    }
+
+    @Override
+    public Homework update(Homework homework, String tmpPath) {
+        //1.查询作业
+        Homework oldhomework = homeworkDao.findById(homework.getId()).get();
+
+        //2.修改作业信息
+        if (StringUtils.isNotBlank(homework.getName())){
+            oldhomework.setName(homework.getName());
+        }
+        if (StringUtils.isNotBlank(homework.getContent())){
+            oldhomework.setContent(homework.getContent());
+        }
+        if (homework.getSubjectId() != null){
+            oldhomework.setSubjectId(homework.getSubjectId());
+        }
+        if (homework.getDeadline() != null){
+            oldhomework.setDeadline(homework.getDeadline());
+        }
+
+        //3.查询当前作业-学生记录信息
+        List<HomeworkStudent> homeworkStudentList = homeworkStudentDao.findAllByHomeworkId(homework.getId());
+        //4.查询科目信息
+        Subject subject = subjectService.findById(homework.getSubjectId());
+
+        //5.修改当前作业-学生记录信息
+        for (HomeworkStudent homeworkStudent : homeworkStudentList) {
+            if (StringUtils.isNotBlank(homework.getName())){
+                homeworkStudent.setHomeworkName(homework.getName());
+            }
+            if (StringUtils.isNotBlank(homework.getContent())){
+                homeworkStudent.setHomeworkContent(homework.getContent());
+            }
+            if (homework.getSubjectId() != null){
+                homeworkStudent.setSubjectName(subject.getName());
+            }
+            if (homework.getDeadline() != null){
+                homeworkStudent.setDeadline(homework.getDeadline());
+            }
+        }
+        //6. 修改文件信息
+        if (StringUtils.isNotBlank(tmpPath)){
+            //6-1. 把hdfs tmp文件转移到相应的文件路径
+            String oldPathStr = tmpPath;
+            String newPathStr = "/checkduplicate/homework/" +  subject.getCollege() + "/"+  subject.getId() + "/" + oldhomework.getId() +"/";
+            try {
+                if(!hdfsService.renameFile(oldPathStr , newPathStr, homework.getFileRandomName())){
+                    throw new CDException("文件系统发生异常，请尝试重新提交");
+                }
+            } catch (Exception e) {
+                throw new CDException("文件系统发生异常，请尝试重新提交");
+            }
+
+            //6-2.修改作业作业记录信息
+            oldhomework.setFilePath(newPathStr);
+            oldhomework.setFileName(homework.getFileName());
+            oldhomework.setFileRandomName(homework.getFileRandomName());
+
+            //6-3.修改当前作业-学生记录信息
+            for (HomeworkStudent homeworkStudent : homeworkStudentList) {
+                homeworkStudent.setFilePath(newPathStr);
+                homeworkStudent.setFileName(homework.getFileName());
+                homeworkStudent.setFileRandomName(homework.getFileRandomName());
+            }
+        }
+        //7. 提交修改的作业
+        homeworkDao.save(oldhomework);
+
+        //8. 提交修改的作业-学生
+        homeworkStudentDao.saveAll(homeworkStudentList);
+
+        return oldhomework;
+    }
+
+
 
 
 }

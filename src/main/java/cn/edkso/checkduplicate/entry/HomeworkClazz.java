@@ -14,6 +14,7 @@ public class HomeworkClazz {
     private Integer id;
     private Integer homeworkId;
     private Integer clazzId;
+    private String clazzName;
 
     private Integer submitted;
 

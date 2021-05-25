@@ -18,4 +18,5 @@ public interface ClazzService {
 
     List<Clazz> listByNameLike(String name);
 
+    Clazz findById(Integer clazzId);
 }

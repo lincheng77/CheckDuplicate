@@ -161,15 +161,55 @@ public class HomeWorkController {
             @ApiImplicitParam(name = "page" ,value = "当前页数", required = true),
             @ApiImplicitParam(name = "limit" ,value = "每页限制数", required = true),
     })
-    @GetMapping("listPageForStudent")
+    @PostMapping("listPageForStudent")
     public ResultVO listPageForStudent(Integer page, Integer limit,
                                        Integer submitted,
                                        String startTime,
                                        String deadline){ //这里用String接收日期，后面先判断是字符串是否有效
+        //1. 通过token，从redis获取用户
+        String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.STUDENT_TOKEN_NAME);
+        Student student = (Student) redisTemplate.opsForValue().get(access_token);
+        if(student == null){
+            return ResultVOUtil.error(ResultEnum.NOT_LOGGED_IN); //没有登录
+        }
 
-        Page<HomeworkStudent> homeworkStudentPage = homeworkService.listPageForStudent(page, limit,submitted,startTime,deadline);
+
+        Page<HomeworkStudent> homeworkStudentPage = homeworkService.listPageForStudent(page, limit,submitted,startTime,deadline, student.getId());
         return ResultVOUtil.success(homeworkStudentPage);
     }
+
+
+    @ApiOperation(value = "查询当前教师作业-学生记录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "submitted" ,value = "提交状态", required = false),
+            @ApiImplicitParam(name = "homeworkId" ,value = "提交状态", required = true),
+            @ApiImplicitParam(name = "isCheck" ,value = "提交状态", required = false),
+            @ApiImplicitParam(name = "ClazzId" ,value = "提交状态", required = false),
+            @ApiImplicitParam(name = "startTime" ,value = "开始日期", required = false),
+            @ApiImplicitParam(name = "deadline" ,value = "截止日期", required = false),
+            @ApiImplicitParam(name = "page" ,value = "当前页数", required = true),
+            @ApiImplicitParam(name = "limit" ,value = "每页限制数", required = true),
+    })
+    @GetMapping("listByPageForDetails")
+    public ResultVO listByPageForDetails(Integer page, Integer limit,
+                                         Integer homeworkId,
+                                       Integer submitted,
+                                       Integer isCheck,
+                                       Integer ClazzId,
+                                       String startTime,
+                                       String deadline){ //这里用String接收日期，后面先判断是字符串是否有效
+        //1. 通过token，从redis获取用户
+        String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.TEACHER_TOKEN_NAME);
+        Teacher teacher = (Teacher) redisTemplate.opsForValue().get(access_token);
+        if(teacher == null){
+            return ResultVOUtil.error(ResultEnum.NOT_LOGGED_IN); //没有登录
+        }
+
+        Page<HomeworkStudent> homeworkStudentPage = homeworkService.listByPageForDetails(page, limit,
+                homeworkId,submitted,startTime,deadline, isCheck,ClazzId);
+        return ResultVOUtil.success(homeworkStudentPage);
+    }
+
 
     @ApiOperation(value = "文件下载")
     @GetMapping("/down")
@@ -262,14 +302,19 @@ public class HomeWorkController {
             @ApiImplicitParam(name = "startTime" ,value = "开始日期", required = false),
             @ApiImplicitParam(name = "deadline" ,value = "截止日期", required = false),
     })
-
     @GetMapping("listByPage")
     public ResultVO listByPage(Integer page, Integer limit,
                                String name , String subjectName,
                                String startTime,String deadline){
 
-        System.out.println("啦啦啦啦");
-        Page<Homework> homeworkPage = homeworkService.listByPage(page, limit,name,subjectName,startTime,deadline);
+        //1. 通过token，从redis获取用户
+        String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.TEACHER_TOKEN_NAME);
+        Teacher teacher = (Teacher) redisTemplate.opsForValue().get(access_token);
+        if(teacher == null){
+            return ResultVOUtil.error(ResultEnum.NOT_LOGGED_IN); //没有登录
+        }
+
+        Page<Homework> homeworkPage = homeworkService.listByPage(page, limit,name,subjectName,startTime,deadline, teacher.getId());
         return ResultVOUtil.success(homeworkPage);
     }
 
@@ -286,5 +331,66 @@ public class HomeWorkController {
         }catch (CDException e){
             return ResultVOUtil.error(e.getMessage());
         }
+    }
+
+    @ApiOperation(value = "查询当前作业下属班级")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id" ,value = "作业id", required = true),
+    })
+    @PostMapping("listHomeworkClazz")
+    public ResultVO listHomeworkClazz(Integer homeworkId){
+        List<HomeworkClazz> homeworkClazzList = homeworkService.listHomeworkClazz(homeworkId);
+        return ResultVOUtil.success(homeworkClazzList);
+    }
+
+    @ApiOperation(value = "查询当前作业下属学生")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id" ,value = "作业id", required = true),
+    })
+    @PostMapping("listHomeworkStudent")
+    public ResultVO listHomeworkStudent(Integer id){
+        List<HomeworkStudent> homeworkStudentList = homeworkService.listHomeworkStudent(id);
+        return ResultVOUtil.success(homeworkStudentList);
+    }
+
+
+    @ApiOperation(value = "增加一条作业记录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id" ,value = "作业id", required = false),
+            @ApiImplicitParam(name = "name" ,value = "作业名称", required = false),
+            @ApiImplicitParam(name = "content" ,value = "作业内容", required = false),
+            @ApiImplicitParam(name = "fileName" ,value = "作业附件路径", required = false),
+            @ApiImplicitParam(name = "tmpPath" ,value = "HDFS临时路径", required = false),
+            @ApiImplicitParam(name = "fileRandomName" ,value = "作业附件随机名", required = false),
+            @ApiImplicitParam(name = "subjectId" ,value = "作业科目", required = false),
+            @ApiImplicitParam(name = "deadline" ,value = "截止日期", required = false),
+
+    })
+    @PostMapping("update")//使用@RequestParam 可以让swagger多出来请求参数
+    public ResultVO update(Integer id, String name, String content,
+                        String fileName, String tmpPath, String fileRandomName,
+                        Integer subjectId, @RequestParam Timestamp deadline){
+
+        Homework homework = new Homework();
+        homework.setId(id);
+        homework.setName(name);
+        homework.setContent(content);
+        homework.setDeadline(deadline);
+
+
+        homework.setFileName(fileName);
+        homework.setFileRandomName(fileRandomName);
+
+        homework.setSubjectId(subjectId);
+
+        try {
+            Homework homeWorkRes = homeworkService.update(homework,tmpPath);
+            if (homeWorkRes != null){
+                return ResultVOUtil.success(homeWorkRes);
+            }
+        }catch (CDException e){
+            return ResultVOUtil.error(e.getMessage());
+        }
+        return ResultVOUtil.error(ResultEnum.PARAMS_ERROR_OR_SYSTEM_EXCEPTION);
     }
 }
