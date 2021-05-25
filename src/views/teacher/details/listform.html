@@ -1,0 +1,146 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>layuiAdmin 文章管理 iframe 框</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="stylesheet" href="../../../layuiadmin/layui/css/layui.css" media="all">
+</head>
+<body>
+
+  <div class="layui-form" lay-filter="layuiadmin-app-form-list" id="layuiadmin-app-form-list" style="padding: 20px 30px 0 0;">
+    <div class="layui-form-item" hidden>
+      <label class="layui-form-label">班级ID</label>
+      <div class="layui-input-inline">
+        <input type="text" name="id" id="id" lay-verify="required" placeholder="请输入班级名称" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">班级名称</label>
+      <div class="layui-input-inline">
+        <input type="text" name="name" id="name" lay-verify="required" placeholder="请输入班级名称" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">班级年级</label>
+      <div class="layui-input-inline">
+        <input type="text" name="grade" id="grade" lay-verify="required" placeholder="请输入班级年级" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">学院</label>
+      <div class="layui-input-inline">
+        <input type="text" name="college" id="college" lay-verify="required" placeholder="请输入学院" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">辅导员</label>
+      <div class="layui-input-inline">
+        <input type="text" name="counselor" id="counselor" lay-verify="required" placeholder="请输入辅导员" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <!-- <div class="layui-form-item">
+      <label class="layui-form-label">标签</label>
+      <div class="layui-input-inline">
+        <select name="label" lay-verify="required">
+          <option value="">请选择标签</option>
+          <option value="美食">美食</option>
+          <option value="新闻">新闻</option>
+          <option value="八卦">八卦</option>
+          <option value="体育">体育</option>
+          <option value="音乐">音乐</option>
+        </select>
+      </div>
+    </div> -->
+    <div class="layui-form-item">
+      <label class="layui-form-label">发布状态</label>
+      <div class="layui-input-inline">
+        <!-- 设置value="1"可自定义值，否则选中时返回的就是默认的on -->
+        <input type="checkbox" lay-verify="required" lay-filter="status" name="state" id="state" lay-skin="switch" lay-text="可使用|不可用" value="1">
+      </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+      <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit" value="确认添加">
+      <input type="button" lay-submit lay-filter="layuiadmin-app-form-edit" id="layuiadmin-app-form-edit" value="确认编辑">
+    </div>
+  </div>
+
+  <script src="../../../layuiadmin/layui/layui.js"></script>  
+  <script>
+  layui.config({
+    base: '../../../layuiadmin/' //静态资源所在路径
+  }).extend({
+    index: 'lib/index' //主入口模块
+  }).use(['index', 'form'], function(){
+    var $ = layui.$
+    ,admin = layui.admin
+    ,form = layui.form;
+    
+    //  获取？后面的参数
+    // //如果是修改id 不为空
+    // function RequestParameter(){
+    //   var url = window.location.search; //获取url中"?"符后的字串
+    //   var theRequest = new Object();
+    //   if (url.indexOf("?") != -1) {
+    //       var str = url.substr(1);
+    //       var strs = str.split("&");
+    //       for(var i = 0; i < strs.length; i ++) {
+    //           theRequest[strs[i].split("=")[0]]=(strs[i].split("=")[1]);
+    //       }
+    //   }
+    //   return theRequest
+    // }
+    // var getGrade=RequestParameter()["id"];
+    // console.log(getGrade)//Mrant
+
+
+    var parent_json = eval('('+parent.json+')');
+    //修改表格中，默认的数据
+    if(parent_json != null){
+      console.log(parent_json)
+      //修改表格中，默认的数据
+      $(function () {
+        $('#id').val(parent_json.id);
+        $('#name').val(parent_json.name);
+        $('#grade').val(parent_json.grade);
+        $('#college').val(parent_json.college);
+        $('#counselor').val(parent_json.counselor);
+        if (parent_json.state === 1){
+          $('#state').prop("checked", true);
+          form.render();
+        }
+    });
+    }
+
+
+    //监听提交
+    form.on('submit(layuiadmin-app-form-submit)', function(data){
+      var field = data.field; //获取提交的字段
+      var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引  
+      
+      //提交 Ajax 成功后，关闭当前弹层并重载表格
+      //$.ajax({});
+
+      admin.req({
+        url: layui.setter.reqUrl + '/clazz/add' //实际使用请改成服务端真实接口
+        ,data: field
+        ,type: 'post'
+        ,done: function(res){
+          parent.layui.table.reload('LAY-app-content-list'); //重载表格
+          parent.layer.close(index);//再执行关闭
+          parent.layer.msg('添加成功');
+        }
+      });
+
+      // parent.layui.table.reload('LAY-app-content-list'); //重载表格
+      // parent.layer.close(index); //再执行关闭
+      // layer.close(index); //再执行关闭 
+    });
+  })
+  </script>
+</body>
+</html>

@@ -26,7 +26,7 @@
           <div class="layui-inline">
             <label class="layui-form-label">作业科目</label>
             <div class="layui-input-inline">
-              <input type="text" name="grade" placeholder="请输入" autocomplete="off" class="layui-input">
+              <input type="text" name="subjectName" placeholder="请输入" autocomplete="off" class="layui-input">
             </div>
           </div>
           <div class="layui-inline">
@@ -42,7 +42,7 @@
             </div>
           </div>
           <div class="layui-inline">
-            <button class="layui-btn layuiadmin-btn-list" lay-submit lay-filter="LAY-app-contlist-search">
+            <button class="layui-btn layuiadmin-btn-list" lay-submit lay-filter="LAY-app-homework-search">
               <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
             </button>
           </div>
@@ -51,23 +51,22 @@
 
       <div class="layui-card-body">
         <div style="padding-bottom: 10px;">
-          
           <button class="layui-btn layuiadmin-btn-list" data-type="batchdel">删除</button>
-          <button class="layui-btn layuiadmin-btn-list" data-type="add">添加</button>
         </div>
         <table id="LAY-app-homework-list" lay-filter="LAY-app-homework-list"></table> 
 
         <script type="text/html" id="table-homework-list2">
-          <a class="layui-btn layui-bg-cyan layui-btn-xs" lay-event="edit"><i class="layui-icon layui-icon-download-circle"></i>下载附件</a>
+          <a class="layui-btn layui-bg-cyan layui-btn-xs" lay-event="down"><i class="layui-icon layui-icon-download-circle"></i>下载附件</a>
           <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit"><i class="layui-icon layui-icon-edit"></i>编辑</a>
           <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon layui-icon-delete"></i>删除</a>
         </script>
         <script type="text/html" id="table-homework-list1">
-          <a class="layui-btn layui-btn-radius layui-btn-primary layui-btn-xs" lay-event="edit"><i class="layui-icon layui-icon-file-b"></i>查看上交详情</a>
+          <a class="layui-btn layui-btn-radius layui-btn-primary layui-btn-xs" lay-event="show"><i class="layui-icon layui-icon-file-b"></i>查看上交详情</a>
+          
         </script>
       </div>
     </div>
-  </div>
+  </div>   
 
   <script src="../../../layuiadmin/layui/layui.js"></script>
   <script>
@@ -76,71 +75,68 @@
   }).extend({
     index: 'lib/index' //主入口模块
     ,teacherlist: 'teacher/teacherlist'
-  }).use(['index' ,'teacherlist', 'table'], function(){
+  }).use(['index', 'element' ,'teacherlist', 'table'], function(){
     var table = layui.table
     ,admin = layui.admin
-    ,form = layui.form;
-    
+    ,laydate = layui.laydate
+    ,upload = layui.upload
+    ,form = layui.form
+    ,element = layui.element;
+
+
     //监听搜索
-    form.on('submit(LAY-app-homework-list)', function(data){
+    form.on('submit(LAY-app-homework-search)', function(data){
       var field = data.field;
     
 
-      //执行重载
-      table.reload('LAY-app-homework-list', {
+    //执行重载
+    table.reload('LAY-app-homework-list', {
         where: field
       });
     });
-    
+
+    //执行一个laydate实例【日期选择】
+    laydate.render({
+      elem: '#startTime' //指定元素
+      // ,show: true //直接显示
+      ,trigger: 'click' //采用click弹出
+      ,theme: 'molv'
+      ,format: 'yyyy-MM-dd HH:mm:ss' //可任意组合
+      ,type: 'datetime'
+    });
+    //执行一个laydate实例【日期选择】
+    laydate.render({
+      elem: '#deadline' //指定元素
+      // ,show: true //直接显示
+      ,trigger: 'click' //采用click弹出
+      ,theme: 'molv'
+      ,format: 'yyyy-MM-dd HH:mm:ss' //可任意组合
+      ,type: 'datetime'
+    });
 
 
     var $ = layui.$, active = {
       batchdel: function(){
-        var checkStatus = table.checkStatus('LAY-app-content-list')
+        var checkStatus = table.checkStatus('LAY-app-homework-list')
         ,checkData = checkStatus.data; //得到选中的数据
 
-        console.log(JSON.stringify(checkData))
         if(checkData.length === 0){
           return layer.msg('请选择数据');
         }
       
         layer.confirm('确定删除吗？', function(index) {
           
-          //执行 Ajax 后重载
-          /*
           admin.req({
-            url: 'xxx'
-            //,……
-          });
-          */
-          admin.req({
-            url: layui.setter.reqUrl + '/clazz/del' //实际使用请改成服务端真实接口
+            url: layui.setter.reqUrl + '/homework/del' //实际使用请改成服务端真实接口
             ,data: JSON.stringify(checkData)
             ,type: 'post'
             ,contentType:'application/json'
             ,done: function(res){
-              table.reload('LAY-app-content-list');
+              table.reload('LAY-app-homework-list');
               layer.msg('已删除');
             }
           });
-          // table.reload('LAY-app-content-list');
-          // layer.msg('已删除');
         });
-      },
-      add: function(){
-        layer.open({
-          type: 2
-          ,title: '添加文章'
-          ,content: 'listform.html'
-          ,maxmin: true
-          ,area: ['550px', '550px']
-          ,btn: ['确定', '取消']
-          ,yes: function(index, layero){
-            //点击确认触发 iframe 内容中的按钮提交
-            var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
-            submit.click();
-          }
-        }); 
       }
     }; 
 

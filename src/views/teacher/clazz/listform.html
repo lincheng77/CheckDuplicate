@@ -21,6 +21,13 @@
     </div>
 
     <div class="layui-form-item">
+      <label class="layui-form-label">作业名称</label>
+      <div class="layui-input-inline" style="width: 337px">
+        <input  type="text" name="name" id="name" lay-verify="required" placeholder="请输入作业名称" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+
+    <div class="layui-form-item">
       <label class="layui-form-label">作业科目</label>
       <div class="layui-input-inline" style="width: 337px">
         <select name="subjectId" lay-verify="required"  id="subjectSelect" lay-search>
@@ -50,12 +57,23 @@
 
 
     <div class="layui-form-item" hidden>
-      <label class="layui-form-label">作业附件路径</label>
+      <label class="layui-form-label">hdfs临时路径</label>
       <div class="layui-input-inline" style="width: 337px">
-        <input type="text" name="filePath" id="filePath"  autocomplete="off" class="layui-input">
+        <input type="text" name="tmpPath" id="tmpPath"  autocomplete="off" class="layui-input">
       </div>
     </div>
-
+    <div class="layui-form-item" hidden>
+      <label class="layui-form-label">作业附件名</label>
+      <div class="layui-input-inline" style="width: 337px">
+        <input type="text" name="fileName" id="fileName"  autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item" hidden>
+      <label class="layui-form-label">作业附件随机名</label>
+      <div class="layui-input-inline" style="width: 337px">
+        <input type="text" name="fileRandomName" id="fileRandomName"  autocomplete="off" class="layui-input">
+      </div>
+    </div>
 
     <div class="layui-form-item layui-hide">
       <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit" value="确认添加">
@@ -138,6 +156,7 @@
       ,trigger: 'click' //采用click弹出
       ,theme: 'molv'
       ,format: 'yyyy-MM-dd HH:mm:ss' //可任意组合
+      ,type: 'datetime'
     });
 
     //执行实例【文件上传】
@@ -151,7 +170,9 @@
           console.log(res.data.msg)
           //上传完毕回调
           layer.msg('上传完成！');
-          $('#filePath').val(res.data);
+          $('#fileName').val(res.data.fileName);
+          $('#tmpPath').val(res.data.tmpPath);
+          $('#fileRandomName').val(res.data.fileRandomName);
           
         }else{
           //请求异常回调
@@ -176,7 +197,7 @@
       var field = data.field; //获取提交的字段
       var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引  
       
-      if(field.filePath == '' || field.filePath == null){
+      if(field.tmpPath == '' || field.tmpPath == null){
           return layer.msg('请先上传文件');
       }
       //提交 Ajax 成功后，关闭当前弹层并重载表格

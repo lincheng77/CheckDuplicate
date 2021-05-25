@@ -12,12 +12,17 @@
   ,table = layui.table
   ,admin = layui.admin
   ,upload = layui.upload
+  ,setter = layui.setter
   ,form = layui.form;
   
   //学生端作业管理
   table.render({
     elem: '#LAY-app-homework-list'
     ,url: layui.setter.reqUrl + '/homework/listPageForStudent' //模拟接口
+    ,method: 'post'
+    ,headers: {
+      'student_access_token': layui.data(setter.tableName).student_access_token
+    }
     ,cols: [[
       {type: 'checkbox', fixed: 'left'}
       ,{field: 'id', width: 100, title: '作业-学生ID', hide: true}//隐藏

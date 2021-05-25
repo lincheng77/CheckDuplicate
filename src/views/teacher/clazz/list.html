@@ -78,8 +78,10 @@
   }).use(['index' ,'teacherlist', 'table'], function(){
     var table = layui.table
     ,admin = layui.admin
+    ,laydate = layui.laydate
+    ,upload = layui.upload
     ,form = layui.form;
-    
+
     //监听搜索
     form.on('submit(LAY-app-contlist-search)', function(data){
       var field = data.field;
@@ -90,6 +92,9 @@
         where: field
       });
     });
+
+
+
     
     var $ = layui.$, active = {
       add: function(){
@@ -108,7 +113,7 @@
           ,title: '发布作业'
           ,content: 'listform.html'
           ,maxmin: true
-          ,area: ['550px', '550px']
+          ,area: ['550px', '580px']
           ,btn: ['确定', '取消']
           ,yes: function(index, layero){
             //点击确认触发 iframe 内容中的按钮提交
