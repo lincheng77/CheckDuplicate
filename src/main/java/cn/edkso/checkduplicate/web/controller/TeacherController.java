@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 //@CrossOrigin
@@ -64,7 +65,7 @@ public class TeacherController {
                 return ResultVOUtil.error(ResultEnum.LOGIN_ERROR);
             }
             //4. 把（token，用户）存储到redis
-            redisTemplate.opsForValue().set(token, teacher);
+            redisTemplate.opsForValue().set(token, teacher,24, TimeUnit.HOURS);
 
             //5. 返回
             Map<String, Object> map = new HashMap<>();

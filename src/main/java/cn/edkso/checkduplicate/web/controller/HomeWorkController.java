@@ -5,31 +5,31 @@ import cn.edkso.checkduplicate.constant.NormalDefault;
 import cn.edkso.checkduplicate.entry.*;
 import cn.edkso.checkduplicate.enums.ResultEnum;
 import cn.edkso.checkduplicate.exception.CDException;
-
 import cn.edkso.checkduplicate.service.HomeworkService;
 import cn.edkso.checkduplicate.service.impl.HdfsService;
-import cn.edkso.checkduplicate.vo.DataVO;
 import cn.edkso.checkduplicate.vo.ResultVO;
-import cn.edkso.utils.*;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import cn.edkso.utils.FileUtils;
+import cn.edkso.utils.ResultVOUtil;
+import cn.edkso.utils.ServletUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -38,15 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.hadoop.conf.Configuration;
-
-import javax.persistence.Transient;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 @Api(tags = "作业模块")
 @RestController
 @RequestMapping("/homework")
@@ -54,6 +45,8 @@ public class HomeWorkController {
 
     @Autowired
     private HomeworkService homeworkService;
+
+
     @Autowired
     private RedisTemplate redisTemplate;
     @Autowired
@@ -162,10 +155,9 @@ public class HomeWorkController {
             @ApiImplicitParam(name = "limit" ,value = "每页限制数", required = true),
     })
     @PostMapping("listPageForStudent")
-    public ResultVO listPageForStudent(Integer page, Integer limit,
-                                       Integer submitted,
-                                       String startTime,
-                                       String deadline){ //这里用String接收日期，后面先判断是字符串是否有效
+    //这里用String接收日期，后面先判断是字符串是否有效
+    public ResultVO listPageForStudent(Integer page, Integer limit, Integer submitted, String startTime, String deadline){
+
         //1. 通过token，从redis获取用户
         String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.STUDENT_TOKEN_NAME);
         Student student = (Student) redisTemplate.opsForValue().get(access_token);
@@ -191,13 +183,14 @@ public class HomeWorkController {
             @ApiImplicitParam(name = "limit" ,value = "每页限制数", required = true),
     })
     @GetMapping("listByPageForDetails")
+    //这里用String接收日期，后面先判断是字符串是否有效
     public ResultVO listByPageForDetails(Integer page, Integer limit,
                                          Integer homeworkId,
                                        Integer submitted,
                                        Integer isCheck,
                                        Integer ClazzId,
                                        String startTime,
-                                       String deadline){ //这里用String接收日期，后面先判断是字符串是否有效
+                                       String deadline){
         //1. 通过token，从redis获取用户
         String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.TEACHER_TOKEN_NAME);
         Teacher teacher = (Teacher) redisTemplate.opsForValue().get(access_token);
@@ -390,6 +383,22 @@ public class HomeWorkController {
             }
         }catch (CDException e){
             return ResultVOUtil.error(e.getMessage());
+        }
+        return ResultVOUtil.error(ResultEnum.PARAMS_ERROR_OR_SYSTEM_EXCEPTION);
+    }
+
+
+    @ApiOperation(value = "查询一条（作业-班级）记录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "clazzId" ,value = "（作业-班级）id", required = true),
+            @ApiImplicitParam(name = "homeworkId" ,value = "作业id", required = true),
+    })
+    @PostMapping("findHomeworkClazzByHomeworkIdAndClazzId")
+    public ResultVO findHomeworkClazzByHomeworkIdAndClazzId(Integer clazzId,Integer homeworkId){
+
+        HomeworkClazz homeworkClazz = homeworkService.findHomeworkClazzByHomeworkIdAndClazzId(clazzId, homeworkId);
+        if (homeworkClazz != null){
+            return ResultVOUtil.success(homeworkClazz);
         }
         return ResultVOUtil.error(ResultEnum.PARAMS_ERROR_OR_SYSTEM_EXCEPTION);
     }

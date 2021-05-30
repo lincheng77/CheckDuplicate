@@ -22,6 +22,9 @@ public class HomeworkStudent {
     private String homeworkContent;
     private Integer clazzId;
     private Integer studentId;
+    private String clazzName;
+    private String studentName;
+
 
     private Integer state;
 

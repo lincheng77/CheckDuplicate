@@ -38,4 +38,6 @@ public interface HomeworkService {
 
     Page<HomeworkStudent> listByPageForDetails(Integer page, Integer limit,Integer homeworkId, Integer submitted, String startTime, String deadline, Integer isCheck, Integer clazzId);
 
+    HomeworkClazz findHomeworkClazzByHomeworkIdAndClazzId(Integer clazzId, Integer homeworkId);
+
 }

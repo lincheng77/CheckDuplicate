@@ -1,6 +1,7 @@
 package cn.edkso.checkduplicate.service.impl;
 
 
+
 import cn.edkso.checkduplicate.constant.ExceptionDefault;
 import cn.edkso.checkduplicate.dao.HomeworkClazzDao;
 import cn.edkso.checkduplicate.dao.HomeworkDao;
@@ -11,6 +12,7 @@ import cn.edkso.checkduplicate.service.ClazzService;
 import cn.edkso.checkduplicate.service.HomeworkService;
 import cn.edkso.checkduplicate.service.StudentService;
 import cn.edkso.checkduplicate.service.SubjectService;
+import io.swagger.models.auth.In;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +49,7 @@ public class HomeworkServiceImpl implements HomeworkService {
     private ClazzService clazzService;
 
     @Override
-    public Homework save(String[] clazzIdArr,  Homework homeWork) {
+    public Homework save(String[] clazzIdArr, Homework homeWork) {
 
         //1. 保存作业
         Homework homeworkRes = homeworkDao.save(homeWork);
@@ -153,11 +155,11 @@ public class HomeworkServiceImpl implements HomeworkService {
             predicate.getExpressions().add(cb.equal(root.get("homeworkId"), homeworkId));
 
             //增加筛选条件-1(查重情况)
-            if(isCheck != null){
+            if(isCheck != null && submitted != -1){
                 predicate.getExpressions().add(cb.equal(root.get("state"), isCheck));
             }
             //增加筛选条件0(班级id)
-            if(isCheck != null){
+            if(clazzId != null && submitted != -1){
                 predicate.getExpressions().add(cb.equal(root.get("clazzId"), clazzId));
             }
 
@@ -187,8 +189,13 @@ public class HomeworkServiceImpl implements HomeworkService {
 
             return predicate;
         };
+        Page<HomeworkStudent> homeworkStudentPage = homeworkStudentDao.findAll(specification, pageable);
+        return homeworkStudentPage;
+    }
 
-        return null;
+    @Override
+    public HomeworkClazz findHomeworkClazzByHomeworkIdAndClazzId(Integer clazzId, Integer homeworkId) {
+        return homeworkClazzDao.findByHomeworkIdAndClazzId(homeworkId,clazzId).get();
     }
 
     @Override
@@ -371,8 +378,10 @@ public class HomeworkServiceImpl implements HomeworkService {
                 homeworkStudent.setHomeworkContent(homeworkRes.getContent());
 
                 homeworkStudent.setStudentId(student.getId());
+                homeworkStudent.setStudentName(student.getName());
                 homeworkStudent.setSubjectName(subject.getName());
                 homeworkStudent.setClazzId(homeworkClazz.getClazzId());
+                homeworkStudent.setClazzName(homeworkClazz.getClazzName());
 
                 homeworkStudent.setState(1); //可用
                 homeworkStudent.setSubmitted(0); //未提交
