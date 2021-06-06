@@ -72,6 +72,7 @@ public class ClazzController {
     @PostMapping("add")
     public ResultVO add(Clazz clazz){
         try {
+            clazz.setNumbers(0);  //初始班级人数为0
             Clazz resClazz = clazzService.saveAndUpdate(clazz);
             if (resClazz != null){
                 return ResultVOUtil.success(resClazz);
