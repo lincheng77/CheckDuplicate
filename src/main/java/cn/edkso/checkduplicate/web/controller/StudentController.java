@@ -112,7 +112,7 @@ public class StudentController {
             return ResultVOUtil.error(ResultEnum.NOT_LOGGED_IN); //没有登录
         }
 
-        if (!MD5Utils.md5(oldPassword).equals(oldStudent.getPassword())){
+        if (oldPassword != null && !MD5Utils.md5(oldPassword).equals(oldStudent.getPassword())){
             return ResultVOUtil.error(ResultEnum.OLD_PASWORD_ERROR); //原始密码错误
         }
 
