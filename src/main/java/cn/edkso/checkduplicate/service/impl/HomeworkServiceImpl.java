@@ -12,6 +12,14 @@ import cn.edkso.checkduplicate.service.ClazzService;
 import cn.edkso.checkduplicate.service.HomeworkService;
 import cn.edkso.checkduplicate.service.StudentService;
 import cn.edkso.checkduplicate.service.SubjectService;
+import cn.edkso.utils.FileUtils;
+import cn.textcheck.CheckManager;
+import cn.textcheck.engine.algorithm.ContinuityCheck;
+import cn.textcheck.engine.checker.CheckTask;
+import cn.textcheck.engine.pojo.LocalPaperLibrary;
+import cn.textcheck.engine.pojo.Paper;
+import cn.textcheck.engine.report.Reporter;
+import cn.textcheck.engine.type.CheckLevel;
 import io.swagger.models.auth.In;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.Path;
@@ -22,6 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.Predicate;
+import java.io.File;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -198,6 +208,8 @@ public class HomeworkServiceImpl implements HomeworkService {
         return homeworkClazzDao.findByHomeworkIdAndClazzId(homeworkId,clazzId).get();
     }
 
+
+
     @Override
     public HomeworkStudent submitHomework(HomeworkStudent homeworkStudent, String tmpPath) {
 
@@ -207,12 +219,16 @@ public class HomeworkServiceImpl implements HomeworkService {
         String studentFileRandomName = homeworkStudent.getStudentFileRandomName(); //学生提交作业附件随机名
 
         String oldPathStr = tmpPath;
-        String newPathStr = filePath + "/" + clazzId + "/";
+//        String newPathStr = filePath + "/" + clazzId + "/";
+        String newPathStr = filePath + "/" ;
 
 
         //2. 作业文件提交到HDFS（也就是移动）
         try {
-            if(!hdfsService.renameFile(oldPathStr , newPathStr, studentFileRandomName)){
+//            if(!hdfsService.renameFile(oldPathStr , newPathStr, studentFileRandomName)){
+//                throw new CDException("文件系统发生异常，请尝试重新提交");
+//            }
+            if(!FileUtils.renameFile(oldPathStr , newPathStr, studentFileRandomName)){
                 throw new CDException("文件系统发生异常，请尝试重新提交");
             }
         } catch (Exception e) {
@@ -229,7 +245,7 @@ public class HomeworkServiceImpl implements HomeworkService {
         //4. 修改作业的[班级]上交人数
         Optional<HomeworkClazz> homeworkClazzOptional = homeworkClazzDao.findByHomeworkIdAndClazzId(homeworkStudent.getHomeworkId() ,homeworkStudent.getClazzId());
         HomeworkClazz homeworkClazz = homeworkClazzOptional.get();
-        homeworkClazz.setSubmitted(homeworkClazz.getSubmitted());
+        homeworkClazz.setSubmitted(homeworkClazz.getSubmitted() + 1);
         homeworkClazzDao.save(homeworkClazz);
 
         //5. 修改作业-学生 记录
@@ -329,18 +345,23 @@ public class HomeworkServiceImpl implements HomeworkService {
 
     @Override
     public Homework save(String[] clazzIdArr, Homework homework, String tmpPath) {
-        //1. 保存作业
-        Homework homeworkRes = homeworkDao.save(homework);
-
 
         //2. 查询科目信息
         Subject subject = subjectService.findById(homework.getSubjectId());
 
+        //1. 保存作业
+        homework.setSubjectName(subject.getName());
+        Homework homeworkRes = homeworkDao.save(homework);
+
+
         //3. 把hdfs tmp文件转移到相应的文件路径
         String oldPathStr = tmpPath;
-        String newPathStr = "/checkduplicate/homework/" +  subject.getCollege() + "/"+  subject.getId() + "/" + homeworkRes.getId() +"/";
+        String newPathStr = "/checkduplicate/homework/" +  subject.getId() + "/"+  subject.getId() + "/" + homeworkRes.getId() +"/";
         try {
-            if(!hdfsService.renameFile(oldPathStr , newPathStr, homework.getFileRandomName())){
+//            if(!hdfsService.renameFile(oldPathStr , newPathStr, homework.getFileRandomName())){
+//                throw new CDException("文件系统发生异常，请尝试重新提交");
+//            }
+            if(!FileUtils.renameFile(oldPathStr , newPathStr, homework.getFileRandomName())){
                 throw new CDException("文件系统发生异常，请尝试重新提交");
             }
         } catch (Exception e) {
@@ -487,9 +508,12 @@ public class HomeworkServiceImpl implements HomeworkService {
         if (StringUtils.isNotBlank(tmpPath)){
             //6-1. 把hdfs tmp文件转移到相应的文件路径
             String oldPathStr = tmpPath;
-            String newPathStr = "/checkduplicate/homework/" +  subject.getCollege() + "/"+  subject.getId() + "/" + oldhomework.getId() +"/";
+            String newPathStr = "/checkduplicate/homework/" +  subject.getId() + "/"+  subject.getId() + "/" + oldhomework.getId() +"/";
             try {
-                if(!hdfsService.renameFile(oldPathStr , newPathStr, homework.getFileRandomName())){
+//                if(!hdfsService.renameFile(oldPathStr , newPathStr, homework.getFileRandomName())){
+//                    throw new CDException("文件系统发生异常，请尝试重新提交");
+//                }
+                if(!FileUtils.renameFile(oldPathStr , newPathStr, homework.getFileRandomName())){
                     throw new CDException("文件系统发生异常，请尝试重新提交");
                 }
             } catch (Exception e) {
@@ -517,7 +541,40 @@ public class HomeworkServiceImpl implements HomeworkService {
         return oldhomework;
     }
 
+    @Override
+    public void checkOne(HomeworkStudent homeworkStudent) throws IOException, InterruptedException {
 
+        CheckManager.INSTANCE.setRegCode("cbhUJXb/GhXSa0r9XCE/yvUv4Dywc5dbKhzuIEgKWzRuz6pXPg5CmrasWi7svizYtESqUgHjLwe6uDUQ9xp0yWJXp403E8q6Ar8cBqUc3GXt/o6Hn9yLR1rGCB9C3c7mKWf8xoW8YlhC80dkrrEhHfEe1KmDFYbju4Xs3DE4DFbsyqOy6tbnEHvLd/EGOXw5lQHcVOkMgbpKvEt6vPkZeRbWZ44yYSVOdI0Awkp9M6RgPqKMLSQ7st22W2XdoiThAlyVYCxPNdM1Ak4wqcEj8L3kUlvs9XTuxyPkjNb9rPQdElXlQk8sNPprkllFtnTPR5xrgoBohOyaeppNE/+JA5ncZ98LBsi/JwLtautfF3AOYkMW8y0C+IEvy/8IT22mrXBtwWs+Gm++DKBTWjIxt+6omZbHmxZ/A+E7syl5tP9u5Ev+yqvqlfxoKkg33e9Z44UYZThww04s06tucjQb96TUY8HKm7M0H37qWUTZ8TY=");
 
+        //通过<文件夹>加载本地比对库（支持pdf、txt、doc、docx）
+        LocalPaperLibrary paperLibrary = LocalPaperLibrary.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath()));//初始化对比库对象
 
+        //读取待查重的<文件>（支持pdf、txt、doc、docx）
+        Paper paperTeacher = Paper.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + "/" + homeworkStudent.getFileRandomName())); //读取本地<文件>
+        Paper paper = Paper.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + "/" + homeworkStudent.getStudentFileRandomName())); //读取本地<文件>
+
+        //注意：待查文本和比对库中的文本如果完全相同，将会自动跳过，不进行查重比对。测试时请不要使用完全相同的两个文本进行查重。
+
+        //构建并启动任务
+        CheckTask checkTask = CheckManager.INSTANCE
+                .getCheckTaskBuilder() //获取查重任务构造器
+                .addLibrary(paperLibrary) //添加比对库。可以添加多个
+                .addCheckPaper(paper) //添加待查Paper。可以添加多个
+//                .addCheckCore(new ContinuityCheck(CheckLevel.STRICT))
+//                .addWhiteWord(paperTeacher.getText())
+                .build(); //构建任务，返回checkTask对象
+        checkTask.start(); //启动任务
+        checkTask.join(); //等待查重结束（阻塞）
+
+        for (Reporter reporter : checkTask.getReporters()) {
+            homeworkStudent.setTextRepeat(Float.valueOf(reporter.getCopyRate()));
+            homeworkStudent.setIsCheck(1);
+            homeworkStudentDao.save(homeworkStudent);
+        }
+    }
+
+    @Override
+    public Homework findHomeworkById(Integer id) {
+        return homeworkDao.findById(id).get();
+    }
 }

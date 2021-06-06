@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -56,31 +57,36 @@ public class HomeWorkController {
     @RequestMapping("/upload")
     public ResultVO upload(MultipartFile file) {
         try {
-            //1 获得文件输入流
-            FileInputStream in = (FileInputStream) file.getInputStream();
-            //2 创建连接
-            Configuration conf = new Configuration();
-            //3 获取连接对象
-            FileSystem fs = FileSystem.get(URI.create(ConfigDefault.HDFS_ADDRESS), conf, ConfigDefault.HDFS_USER);
-
-//            FileSystem fs = hdfsService.getFileSystem();
-
-            //4 流上传文件
+//            //1 获得文件输入流
+//            FileInputStream in = (FileInputStream) file.getInputStream();
+//            //2 创建连接
+//            Configuration conf = new Configuration();
+//            //3 获取连接对象
+//            FileSystem fs = FileSystem.get(URI.create(ConfigDefault.HDFS_ADDRESS), conf, ConfigDefault.HDFS_USER);
+//
+////            FileSystem fs = hdfsService.getFileSystem();
+//
+//            //4 流上传文件
+//            String fileName = FileUtils.getFileName(file);
+//            String fileRandomName = FileUtils.rename(file);
+////            String tmpPath = "/checkduplicate/tmp/" + fileRandomName;
+//            String tmpPath = "/checkduplicate/tmp/";
+//            FSDataOutputStream out = fs.create(new Path(tmpPath + fileRandomName));//在hdfs上创建路径
+//            byte[] b = new byte[1024 * 1024];
+//            int read = 0;
+//            while ((read = in.read(b)) > 0) {
+//                out.write(b, 0, read);
+//            }
+//
+//            //5 关闭资源
+//            in.close();
+//            out.close();
+//            fs.close();
             String fileName = FileUtils.getFileName(file);
-            String fileRandomName = FileUtils.rename(file);
-//            String tmpPath = "/checkduplicate/tmp/" + fileRandomName;
+            String fileRandomName = FileUtils.getFileRandomName(file);
             String tmpPath = "/checkduplicate/tmp/";
-            FSDataOutputStream out = fs.create(new Path(tmpPath + fileRandomName));//在hdfs上创建路径
-            byte[] b = new byte[1024 * 1024];
-            int read = 0;
-            while ((read = in.read(b)) > 0) {
-                out.write(b, 0, read);
-            }
+            FileUtils.saveFile(file,tmpPath, fileRandomName);
 
-            //5 关闭资源
-            in.close();
-            out.close();
-            fs.close();
 
             //6 返回
             Map<String,Object> map = new HashMap<>();
@@ -88,7 +94,8 @@ public class HomeWorkController {
             map.put("fileRandomName",fileRandomName);
             map.put("tmpPath",tmpPath);
             return ResultVOUtil.success(map);
-        } catch (IOException | InterruptedException e) {
+//        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return ResultVOUtil.error(ResultEnum.UPLOAD_ERROR);
         }
@@ -212,13 +219,15 @@ public class HomeWorkController {
         System.out.println(fileRandomName);
 
         try {
-            //获取hdfs对象
-            FileSystem fs = hdfsService.getFileSystem();
-            Path file = new Path(filePath + "/" + fileRandomName);
+//            //获取hdfs对象
+//            FileSystem fs = hdfsService.getFileSystem();
+//            Path file = new Path(filePath + "/" + fileRandomName);
+//
+//            //获取输入流
+//            FSDataInputStream in = fs.open(file);
+            File file = new File(FileUtils.getStaticPath() + filePath + "/" + fileRandomName);
 
-            //获取输入流
-            FSDataInputStream in = fs.open(file);
-
+            FileInputStream in = new FileInputStream(file);
 
             //设置resposne响应头
             //设置响应头类型
@@ -240,9 +249,12 @@ public class HomeWorkController {
                 out.write(buf,0,len);
             }
 
-            //关流
-            IOUtils.closeStream(in);
-            fs.close();
+//            //关流
+//            IOUtils.closeStream(in);
+//            fs.close();
+
+            in.close();
+            out.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -399,6 +411,34 @@ public class HomeWorkController {
         HomeworkClazz homeworkClazz = homeworkService.findHomeworkClazzByHomeworkIdAndClazzId(clazzId, homeworkId);
         if (homeworkClazz != null){
             return ResultVOUtil.success(homeworkClazz);
+        }
+        return ResultVOUtil.error(ResultEnum.PARAMS_ERROR_OR_SYSTEM_EXCEPTION);
+    }
+
+
+    @ApiOperation(value = "单条记录查重")
+    @ApiImplicitParams({
+    })
+    @PostMapping("checkOne")
+    public ResultVO checkOne(HomeworkStudent homeworkStudent){
+        try {
+            homeworkService.checkOne(homeworkStudent);
+            return ResultVOUtil.success();
+        }catch (Exception e){
+            return ResultVOUtil.error(ResultEnum.CHECK_ERROR);
+        }
+
+    }
+
+    @ApiOperation(value = "单条记录查重")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id" ,value = "作业id", required = true),
+    })
+    @PostMapping("findHomeworkById")
+    public ResultVO findHomeworkById(Integer id){
+        Homework homework = homeworkService.findHomeworkById(id);
+        if (homework != null){
+            return ResultVOUtil.success(homework);
         }
         return ResultVOUtil.error(ResultEnum.PARAMS_ERROR_OR_SYSTEM_EXCEPTION);
     }

@@ -21,7 +21,6 @@
     </properties>
 
     <dependencies>
-
         <!--data jpa-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -89,6 +88,12 @@
             <version>3.1.3</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>3.1.3</version>
+        </dependency>
+
         <!--redis-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -108,6 +113,13 @@
             <artifactId>spring-boot-devtools</artifactId>
             <optional>true</optional>
         </dependency>-->
+
+        <!--查重核心-->
+        <dependency>
+            <groupId>com.xincheck</groupId>
+            <artifactId>duplicate-check</artifactId>
+            <version>0.5.2</version>
+        </dependency>
 
     </dependencies>
 
@@ -137,5 +149,11 @@
 
         </plugins>
     </build>
-
+    <repositories>
+        <repository>
+            <id>XINCHECK</id>
+            <name>XINCHECK Public Repository</name>
+            <url>https://maven.xincheck.com/repository/maven-releases/</url>
+        </repository>
+    </repositories>
 </project>

@@ -10,6 +10,7 @@ public enum ResultEnum {
     OLD_PASWORD_ERROR(423, "原始密码错误！"),
     PARAMS_ERROR_OR_SYSTEM_EXCEPTION(432, "参数错误或系统异常"),
     UPLOAD_ERROR(441, "上传出现异常"),
+    CHECK_ERROR(451, "查重出现异常！"),
     ;
     private Integer code;
     private String message;

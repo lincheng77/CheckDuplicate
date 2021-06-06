@@ -7,6 +7,7 @@ import cn.edkso.checkduplicate.entry.HomeworkClazz;
 import cn.edkso.checkduplicate.entry.HomeworkStudent;
 import org.springframework.data.domain.Page;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -39,5 +40,9 @@ public interface HomeworkService {
     Page<HomeworkStudent> listByPageForDetails(Integer page, Integer limit,Integer homeworkId, Integer submitted, String startTime, String deadline, Integer isCheck, Integer clazzId);
 
     HomeworkClazz findHomeworkClazzByHomeworkIdAndClazzId(Integer clazzId, Integer homeworkId);
+
+    void checkOne(HomeworkStudent homeworkStudent) throws IOException, InterruptedException;
+
+    Homework findHomeworkById(Integer id);
 
 }
