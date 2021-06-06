@@ -58,6 +58,8 @@ public class SubjectController {
     @PostMapping("add")
     public ResultVO add(Subject subject){
         try {
+            subject.setCollegeId(0);
+            subject.setCollegeName("");
             Subject resSubject = subjectService.saveAndUpdate(subject);
             if (resSubject != null){
                 return ResultVOUtil.success(resSubject);
