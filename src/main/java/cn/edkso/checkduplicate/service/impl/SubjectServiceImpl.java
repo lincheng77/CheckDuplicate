@@ -7,13 +7,14 @@ import cn.edkso.checkduplicate.exception.CDException;
 import cn.edkso.checkduplicate.service.SubjectService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.Predicate;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,12 +78,19 @@ public class SubjectServiceImpl implements SubjectService {
     public Page<Subject> listByPage(Integer page, Integer limit, Subject subject) {
         Pageable pageable = PageRequest.of(page -1,limit);
 
-        if (StringUtils.isBlank(subject.getName())){
-            subject.setName(null);
-        }
-        Example<Subject> example = Example.of(subject);
 
-        Page<Subject> subjectPage = subjectDao.findAll(example, pageable);
+        Specification specification = (root, cq, cb) -> {
+            Predicate predicate = cb.conjunction();
+            //增加筛选条件0(学科名称模糊匹配)
+            if (StringUtils.isNotBlank(subject.getName())){
+                predicate.getExpressions().add(cb.like(root.get("name"), "%" + subject.getName() + "%"));
+            }
+
+
+            return predicate;
+        };
+
+        Page<Subject> subjectPage = subjectDao.findAll(specification, pageable);
 
         return subjectPage;
     }
