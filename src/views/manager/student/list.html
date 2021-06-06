@@ -18,43 +18,22 @@
       <div class="layui-form layui-card-header layuiadmin-card-header-auto">
         <div class="layui-form-item">
           <div class="layui-inline">
-            <label class="layui-form-label">班级名称</label>
+            <label class="layui-form-label">学生姓名</label>
             <div class="layui-input-inline">
               <input type="text" name="name" placeholder="请输入" autocomplete="off" class="layui-input">
             </div>
           </div>
           <div class="layui-inline">
-            <label class="layui-form-label">班级年级</label>
-            <div class="layui-input-inline">
-              <input type="text" name="grade" placeholder="请输入" autocomplete="off" class="layui-input">
-            </div>
-          </div>
-          <div class="layui-inline">
-            <label class="layui-form-label">学院</label>
-            <div class="layui-input-inline">
-              <input type="text" name="college" placeholder="请输入" autocomplete="off" class="layui-input">
-            </div>
-            <div class="layui-inline">
-              <label class="layui-form-label">辅导员</label>
-              <div class="layui-input-inline">
-                <input type="text" name="counselor" placeholder="请输入" autocomplete="off" class="layui-input">
-              </div>
-            </div>
-          <!-- <div class="layui-inline">
-            <label class="layui-form-label">辅导员</label>
-            <div class="layui-input-inline">
-              <select name="label">
-                <option value="">请选择标签</option>
-                <option value="0">美食</option>
-                <option value="1">新闻</option>
-                <option value="2">八卦</option>
-                <option value="3">体育</option>
-                <option value="4">音乐</option>
+            <label class="layui-form-label">所属班级</label>
+            <div class="layui-input-inline" >
+              <select name="clazzId" id="clazzSelect" lay-search>
+                <option value="">不选择</option>
               </select>
             </div>
-          </div> -->
+          </div>
+
           <div class="layui-inline">
-            <button class="layui-btn layuiadmin-btn-list" lay-submit lay-filter="LAY-app-contlist-search">
+            <button class="layui-btn layuiadmin-btn-list" lay-submit lay-filter="LAY-app-student-search">
               <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
             </button>
           </div>
@@ -64,9 +43,9 @@
       <div class="layui-card-body">
         <div style="padding-bottom: 10px;">
           <button class="layui-btn layuiadmin-btn-list" data-type="batchdel">删除</button>
-          <button class="layui-btn layuiadmin-btn-list" data-type="add">添加</button>
+          <!-- <button class="layui-btn layuiadmin-btn-list" data-type="add">添加</button> -->
         </div>
-        <table id="LAY-app-content-list" lay-filter="LAY-app-content-list"></table> 
+        <table id="LAY-app-student-list" lay-filter="LAY-app-student-list"></table> 
         <script type="text/html" id="buttonTpl">
           {{#  if(d.state == 1){ }}
             <button class="layui-btn layui-btn-xs">可使用</button>
@@ -74,7 +53,7 @@
             <button class="layui-btn layui-btn-primary layui-btn-xs">不可用</button>
           {{#  } }}
         </script>
-        <script type="text/html" id="table-content-list">
+        <script type="text/html" id="table-student-list">
           <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit"><i class="layui-icon layui-icon-edit"></i>编辑</a>
           <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon layui-icon-delete"></i>删除</a>
         </script>
@@ -95,19 +74,36 @@
     ,form = layui.form;
     
     //监听搜索
-    form.on('submit(LAY-app-contlist-search)', function(data){
+    form.on('submit(LAY-app-student-search)', function(data){
       var field = data.field;
     
 
       //执行重载
-      table.reload('LAY-app-content-list', {
+      table.reload('LAY-app-student-list', {
         where: field
       });
     });
+
+    //带输入的选择框【查询科目】
+    var htmls = '<option value="">不选择/option>'; //全局变量
+    // var htmls = '<option value="">请输入or选择</option>'; //全局变量
+    admin.req({
+        url: layui.setter.reqUrl + '/clazz/listAll' //实际使用请改成服务端真实接口
+        ,type: 'get'
+        ,done: function(res){
+          clazzList = res.data;
+          for(var index in clazzList){
+            htmls += '<option value = "' + clazzList[index].id + '">' + clazzList[index].name + '</option>'
+          }
+          $("#clazzSelect").html(htmls);
+          form.render('select');//需要渲染一下
+        }
+    });
+
     
     var $ = layui.$, active = {
       batchdel: function(){
-        var checkStatus = table.checkStatus('LAY-app-content-list')
+        var checkStatus = table.checkStatus('LAY-app-student-list')
         ,checkData = checkStatus.data; //得到选中的数据
 
         console.log(JSON.stringify(checkData))
@@ -125,12 +121,12 @@
           });
           */
           admin.req({
-            url: layui.setter.reqUrl + '/clazz/del' //实际使用请改成服务端真实接口
+            url: layui.setter.reqUrl + '/student/delForManager' //实际使用请改成服务端真实接口
             ,data: JSON.stringify(checkData)
             ,type: 'post'
             ,contentType:'application/json'
             ,done: function(res){
-              table.reload('LAY-app-content-list');
+              table.reload('LAY-app-student-list');
               layer.msg('已删除');
             }
           });
