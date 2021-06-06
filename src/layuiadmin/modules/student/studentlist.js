@@ -23,10 +23,14 @@
     ,headers: {
       'student_access_token': layui.data(setter.tableName).student_access_token
     }
+    ,initSort: {
+      field: 'id' //排序字段，对应 cols 设定的各字段名
+      ,type: 'desc' //排序方式  asc: 升序、desc: 降序、null: 默认排序
+    }
     ,cols: [[
       {type: 'checkbox', fixed: 'left'}
       ,{field: 'id', width: 100, title: '作业-学生ID', hide: true}//隐藏
-      ,{field: 'homeworkId', width: 120, title: '作业ID'}
+      ,{field: 'homeworkId', width: 120, title: '作业ID', sort : true} 
       ,{field: 'clazzId', hide: true}
       ,{field: 'subjectName', title: '作业学科', minWidth: 170}
       ,{field: 'homeworkName', title: '作业名称', minWidth: 270}

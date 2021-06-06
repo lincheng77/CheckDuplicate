@@ -21,7 +21,7 @@
             </div>
           </div>
           <div class="layui-inline">
-            <label class="layui-form-label">班级Id</label>
+            <label class="layui-form-label">班级</label>
             <div class="layui-input-inline">
               <select name="clazzId"  id="clazzIdSelect" lay-verify="required">
                 <option value="">直接选择或搜索选择</option>
@@ -51,7 +51,7 @@
             </div>
           </div>
           <div class="layui-inline">
-            <button class="layui-btn layuiadmin-btn-list" lay-submit lay-filter="LAY-app-homework-search">
+            <button class="layui-btn layuiadmin-btn-list" lay-submit lay-filter="LAY-app-details-search">
               <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
             </button>
           </div>
@@ -59,21 +59,52 @@
       </div>
 
       <div class="layui-card-body">
-        <div style="padding-bottom: 10px;">
+        <!-- <div style="padding-bottom: 10px;">
           <button class="layui-btn layuiadmin-btn-list" data-type="batchdel">删除</button>
           <button class="layui-btn layuiadmin-btn-list" data-type="add">添加</button>
-        </div>
+        </div> -->
+        <ul class="layui-nav" style="text-align: center;">
+          <li class="">
+            <div><b id="homeworkName"></b></div>
+          </li>          
+          <div style="margin-top: -10px;">
+            <li class="layui-nav-item">
+              <div><b id="curClazzNmae"></b></div>
+            </li>
+            <li class="layui-nav-item">
+              <a >上交人数<span class="layui-badge layui-bg-green" id="curClazzSubmitted">9</span></a>
+            </li>
+            &nbsp;&nbsp;
+            <li class="layui-nav-item">
+              <a >未交人数<span class="layui-badge" id="curClazzNoSubmitted">10</span></a>
+            </li>
+          </div>
+        </ul>
+
+
         <table id="LAY-app-details-list" lay-filter="LAY-app-details-list"></table> 
-        <script type="text/html" id="buttonTpl">
-          {{#  if(d.state == 1){ }}
-            <button class="layui-btn layui-btn-xs">可使用</button>
+        <script type="text/html" id="buttonTpl-submitted">
+          {{#  if(d.submitted == 1){ }}
+            <button class="layui-btn layui-btn-xs">已上交</button>
           {{#  } else { }}
-            <button class="layui-btn layui-btn-primary layui-btn-xs">不可用</button>
+            <button class="layui-btn layui-btn-primary layui-btn-xs">未上交</button>
+          {{#  } }}
+        </script>
+
+        <script type="text/html" id="buttonTpl-isCheck">
+          {{#  if(d.isCheck == 1 && d.textRepeat <= 0.20){ }}
+              <span class="layui-badge-dot layui-bg-green"></span>&nbsp;重复率:{{d.textRepeat}}
+          {{#  } else if(d.isCheck == 1 && d.textRepeat <= 0.30) { }}
+              <span class="layui-badge-dot layui-bg-orange"></span>&nbsp;重复率:{{d.textRepeat}}
+          {{#  } else if(d.isCheck == 1 ) { }}
+              <span class="layui-badge-dot"></span>&nbsp;重复率:{{d.textRepeat}}
+          {{#  } else { }}
+            <button class="layui-btn layui-btn-primary layui-btn-xs">未查重</button>
           {{#  } }}
         </script>
         <script type="text/html" id="table-content-list">
-          <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit"><i class="layui-icon layui-icon-edit"></i>编辑</a>
-          <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon layui-icon-delete"></i>删除</a>
+          <a class="layui-btn  layui-btn-xs layui-btn-radius"  lay-event="check"><i class="layui-icon layui-icon-find-fill"></i>查重</a>
+          <a class="layui-btn layui-bg-cyan  layui-btn-xs layui-btn-radius" " lay-event="down"><i class="layui-icon layui-icon-download-circle"></i>下载附件</a>
         </script>
       </div>
     </div>
@@ -90,7 +121,9 @@
     var table = layui.table
     ,admin = layui.admin
     ,form = layui.form
+    ,setter = layui.setter
     ,upload = layui.upload
+    , $ = layui.$
     ,laydate = layui.laydate
 
     //获取地址栏后的参数方法
@@ -98,27 +131,72 @@
       var  reg = new  RegExp("(^|&)" + name + "=([^&]*)(&|$)");     
       var  r = window.location.search.substr(1).match(reg);     
       if(r != null){
-        return   unescape(r[2]);
+        return   decodeURI(r[2]);
       }else{
         return  null;
       }
-      
     }
-    // homeworkId = _get('homeworkId');
-    // console.log(homeworkId)
-    // if(homeworkId == null){
-    //   layer.msg('请先查询已发布作业', {
-    //     offset: '15px'
-    //     ,icon: 5
-    //     ,time: 1000
-    //   }, function(){
-    //     parent.layui.index.openTabsPage('homework/list.html', '作业管理')
-    //   });
-    // }
+
+    //初次加载(条件表单赋值)
+    homeworkId = _get('homeworkId');
+    $('#homeworkId').val(homeworkId);
+
+
+
+    //初次加载(判断条件)
+    if(homeworkId == null){
+      layer.msg('请先查询已发布作业', {
+        offset: '15px'
+        ,icon: 5
+        ,time: 1000
+      }, function(){
+        parent.layui.index.openTabsPage('homework/list.html', '作业管理')
+      });
+    }
+
+    //初次加载 导航显示 homeworkName
+    $("#homeworkName").html(_get('name'));
+    console.log(_get('name'))
+    $("#curClazzNmae").html("作业总计");
+    $("#curClazzSubmitted").html(_get('submitted'));
+    $("#curClazzNoSubmitted").html(_get('total'));
+
+    //老师作业详情列表
+    table.render({
+      elem: '#LAY-app-details-list'
+      ,url: layui.setter.reqUrl + '/homework/listByPageForDetails' //模拟接口
+      ,headers: {
+        'teacher_access_token': layui.data(setter.tableName).teacher_access_token
+      }
+      ,where: {
+        'homeworkId': homeworkId
+      }
+      ,initSort: {
+        field: 'id' //排序字段，对应 cols 设定的各字段名
+        ,type: 'desc' //排序方式  asc: 升序、desc: 降序、null: 默认排序
+      }
+      ,cols: [[
+        {type: 'checkbox', fixed: 'left'}
+        ,{field: 'id', width: 100, title: 'ID', sort: true}
+        ,{field: 'homeworkName', title: '作业名称', minWidth: 100}
+        ,{field: 'clazzName', title: '班级名称'}
+        ,{field: 'studentName', title: '学生姓名'}
+        ,{field: 'submitted', title: '上交情况', templet: '#buttonTpl-submitted', minWidth: 80, align: 'center'}
+        ,{field: 'isCheck', title: '查重情况', templet: '#buttonTpl-isCheck', minWidth: 80, align: 'center'}
+        ,{field: 'deadline', title: '截止日期', width: 180 , align: 'center'}
+        ,{title: '操作', minWidth: 250, align: 'center', fixed: 'right', templet: '#table-content-list', toolbar: '#table-content-list'}
+      ]]
+      ,page: true
+      ,limit: 30
+      ,limits: [10, 15, 20, 25, 30]
+      ,text: '对不起，加载出现异常！'
+    });
+
+
 
     //请求后端当前作业下属班级列表
     //带输入的选择框【查询班级】
-    var htmls = '<option value="0">无条件</option>'; //全局变量
+    var htmls = '<option value="-1">无条件</option>'; //全局变量
     admin.req({
         url: layui.setter.reqUrl + '/homework/listHomeworkClazz' //实际使用请改成服务端真实接口
         ,type: 'post'
@@ -127,13 +205,12 @@
         }
         ,done: function(res){
           var homeworkClazzList = res.data;
-          console.log(homeworkClazzList)
-          console.log(homeworkClazzList.length)
-          console.log(homeworkClazzList[0].clazzName)
           for(var index in homeworkClazzList){
-            console.log(homeworkClazzList[index].clazzName)
-            htmls += '<option value = "' + homeworkClazzList[index].classId + '">' + homeworkClazzList[index].clazzName + '</option>'
+            htmls += '<option value = "' + homeworkClazzList[index].clazzId + '">' + homeworkClazzList[index].clazzName + '</option>'
           }
+
+          console.log("ceshi")
+
           $("#clazzIdSelect").html(htmls);
           form.render('select');//需要渲染一下
         }
@@ -161,14 +238,46 @@
     //监听搜索
     form.on('submit(LAY-app-details-search)', function(data){
       var field = data.field;
-    
 
+
+      if(field.clazzId != -1){
+        admin.req({
+          url: layui.setter.reqUrl + '/homework/findHomeworkClazzByHomeworkIdAndClazzId' //实际使用请改成服务端真实接口
+          ,type: 'post'
+          ,data: {
+            clazzId: field.clazzId
+            ,homeworkId: field.homeworkId
+          }
+          ,done: function(res){
+            $("#curClazzNmae").html(res.data.clazzName);
+            $("#curClazzSubmitted").html(res.data.submitted);
+            $("#curClazzNoSubmitted").html(res.data.total);
+          }
+        });
+      }else{
+        admin.req({
+          url: layui.setter.reqUrl + '/homework/findHomeworkById' //实际使用请改成服务端真实接口
+          ,type: 'post'
+          ,data: {
+            id: homeworkId
+          }
+          ,done: function(res){
+            $("#curClazzNmae").html("作业总计");
+            $("#curClazzSubmitted").html(res.data.submitted);
+            $("#curClazzNoSubmitted").html(res.data.total);
+          }
+        });
+      }
+
+      
       //执行重载
       table.reload('LAY-app-details-list', {
         where: field
       });
     });
     
+
+
     var $ = layui.$, active = {
       batchdel: function(){
         var checkStatus = table.checkStatus('LAY-app-details-list')

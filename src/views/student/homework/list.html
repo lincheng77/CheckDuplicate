@@ -68,11 +68,11 @@
           {{#  } }}
         </script>
         <script type="text/html" id="table-content-list">
-          <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="details"><i class="layui-icon layui-icon-form"></i>作业详情</a>
+          <a class="layui-btn layui-btn-normal layui-btn-xs"  lay-event="details"><i class="layui-icon "></i>作业详情</a>
           {{#  if(d.filePath != null ){ }}
-            <a class="layui-btn layui-bg-cyan layui-btn-xs" lay-event="down"><i class="layui-icon layui-icon-download-circle"></i>下载附件</a>
+            <a class="layui-btn layui-bg-cyan  layui-btn-xs layui-btn-radius" " lay-event="down"><i class="layui-icon layui-icon-download-circle"></i>下载附件</a>
           {{#  } else { }}
-            <a class="layui-btn layui-btn-disabled layui-btn-xs"><i class="layui-icon layui-icon-ok"></i>无需附件</a>
+            <a class="layui-btn layui-btn-disabled layui-btn-xs layui-btn-radius"><i class="layui-icon layui-icon-ok"></i>无需附件</a>
           {{#  } }}
 
           {{#  
@@ -80,11 +80,11 @@
             var deadline = new Date(Date.parse(d.deadline));
           }}
           {{#  if(d.submitted == 1 ){ }}
-            <a class="layui-btn layui-btn-primary layui-btn-xs"><i class="layui-icon layui-icon-face-smile"></i>已交作业</a>
+            <a class="layui-btn layui-btn-primary layui-btn-xs layui-btn-radius"><i class="layui-icon layui-icon-face-smile"></i>已交作业</a>
           {{#  } else if(deadline < currenTime) { }}
-            <a class="layui-btn layui-btn-disabled layui-btn-xs" ><i class="layui-icon layui-icon-face-cry"></i>过期作业</a>    
+            <a class="layui-btn layui-btn-disabled layui-btn-xs layui-btn-radius" ><i class="layui-icon layui-icon-face-cry"></i>过期作业</a>    
           {{#  } else { }}
-            <button type="button" class="layui-btn layui-btn-xs" lay-event="submit-homework" id="submit-homework">
+            <button type="button" class="layui-btn layui-btn-xs layui-btn-radius" lay-event="submit-homework" id="submit-homework">
               <i class="layui-icon layui-icon-upload-drag"></i>上交作业
             </button>
           {{#  } }}
@@ -167,6 +167,7 @@
           }
           ,done: function(res){
             layer.msg('上传完成！');
+            layui.table.reload('LAY-app-details-list'); //重载表格
           }
         });
 

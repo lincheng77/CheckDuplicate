@@ -84,6 +84,10 @@ layui.define(['table', 'form'], function(exports){
     ,headers: {
       'teacher_access_token': layui.data(setter.tableName).teacher_access_token
     }
+    ,initSort: {
+      field: 'id' //排序字段，对应 cols 设定的各字段名
+      ,type: 'desc' //排序方式  asc: 升序、desc: 降序、null: 默认排序
+    }
     ,cols: [[
       {type: 'checkbox', fixed: 'left'}
       ,{field: 'id', width: 100, title: '作业ID', sort: true}
@@ -109,8 +113,12 @@ layui.define(['table', 'form'], function(exports){
 
     if(obj.event === 'show'){
       parent.layui.index.openTabsPage('details/list.html?'
-      + "homeworkId="+ data.id, '作业详情')
-
+      + "homeworkId="+ data.id
+      + "&submitted="+ data.submitted
+      + "&total="+ data.total
+      + "&name="+ data.name
+      , '作业详情')
+      
     }else if(obj.event === 'del'){
         layer.confirm('确定删除此作业吗？', function(index){
           //请求服务器删除
@@ -166,71 +174,29 @@ layui.define(['table', 'form'], function(exports){
     }
   });
 
-  //老师作业详情列表
-  table.render({
-    elem: '#LAY-app-details-list'
-    ,url: layui.setter.reqUrl + '/homework/listByPageForDetails' //模拟接口
-    ,headers: {
-      'teacher_access_token': layui.data(setter.tableName).teacher_access_token
-    }
-    ,where: {
-      'homeworkId': 26
-    }
-    ,cols: [[
-      {type: 'checkbox', fixed: 'left'}
-      ,{field: 'id', width: 100, title: 'ID', sort: true}
-      ,{field: 'name', title: '作业名称', minWidth: 100}
-      ,{field: 'clazzName', title: '班级名称'}
-      ,{field: 'college', title: '学生姓名'}
-      ,{field: 'isCheck', title: '查重情况', templet: '#buttonTpl-isCheck', minWidth: 80, align: 'center'}
-      ,{field: 'deadline', title: '截止日期', width: 180 , align: 'center'}
-      ,{title: '操作', minWidth: 250, align: 'center', fixed: 'right', templet: '#table-content-list', toolbar: '#table-content-list'}
-    ]]
-    ,page: true
-    ,limit: 30
-    ,limits: [10, 15, 20, 25, 30]
-    ,text: '对不起，加载出现异常！'
-  });
+  
   
   //老师作业详情列表操作管理监听工具条
   table.on('tool(LAY-app-details-list)', function(obj){
     var data = obj.data;
     
-    if(obj.event === 'del'){
+    if(obj.event === 'check'){
+      admin.req({
+        url: layui.setter.reqUrl + '/homework/checkOne' //实际使用请改成服务端真实接口
+        ,data: data
+        ,type: 'post'
+        ,done: function(res){
+        
+          layui.table.reload('LAY-app-details-list'); //重载表格
+          layer.msg('查重完毕');
 
-    } else if(obj.event === 'edit'){
-      json = JSON.stringify(data)
-      layer.open({
-        type: 2
-        ,title: '发布作业'
-        ,content: '../../../views/teacher/clazz/listform.html?id='+ data.id
-        ,maxmin: true
-        ,area: ['550px', '580px']
-        ,btn: ['确定', '取消']
-        ,yes: function(index, layero){
-          var iframeWindow = window['layui-layer-iframe'+ index]
-          ,submit = layero.find('iframe').contents().find("#layuiadmin-app-form-edit");
-          //监听提交
-          iframeWindow.layui.form.on('submit(layuiadmin-app-form-edit)', function(data){
-            var field = data.field; //获取提交的字段
-            
-            if(field.tmpPath == '' || field.tmpPath == null){
-              return layer.msg('请先上传文件');
-            }
-            admin.req({
-              url: layui.setter.reqUrl + '/homework/add' //实际使用请改成服务端真实接口
-              ,data: field
-              ,type: 'post'
-              ,done: function(res){
-                layer.close(index);//再执行关闭
-                layer.msg('作业发布成功');
-              }
-            });        
-          });  
-          
-          submit.trigger('click');
         }
-      });
+      });  
+    } else if(obj.event === 'down'){
+      window.open(layui.setter.reqUrl + "/homework/down?" 
+      + "filePath="+ data.studentFilePath
+      + "&fileName="+ data.studentFileName
+      + "&fileRandomName="+ data.studentFileRandomName);
     }
   });
 

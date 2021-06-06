@@ -141,9 +141,6 @@
         ,done: function(res){
           clazzList = res.data;
           var clazzNames = ''
-          console.log(clazzList)
-          console.log(clazzList.length)
-          console.log(clazzList[0].clazzName)
           for(var index in clazzList){
             if(index == 0){
               clazzNames = clazzNames + clazzList[index].clazzName
