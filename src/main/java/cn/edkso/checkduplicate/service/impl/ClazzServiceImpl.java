@@ -8,9 +8,11 @@ import cn.edkso.checkduplicate.service.ClazzService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.Predicate;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,24 +33,26 @@ public class ClazzServiceImpl implements ClazzService {
         //切记 datajpa从0页开始
 
         Pageable pageable = PageRequest.of(page -1,limit);
+        Specification specification = (root, cq, cb) -> {
+            Predicate predicate = cb.conjunction();
+            //增加筛选条件0(班级名称模糊匹配)
+            if (StringUtils.isNotBlank(clazz.getName())){
+                predicate.getExpressions().add(cb.like(root.get("name"), "%" + clazz.getName() + "%"));
+            }
+            //增加筛选条件1(辅导员模糊匹配)
+            if (StringUtils.isNotBlank(clazz.getCounselor())){
+                predicate.getExpressions().add(cb.like(root.get("counselor"), "%" + clazz.getCounselor() + "%"));
+            }
+            //增加筛选条件2(学院模糊匹配)
+            if (StringUtils.isNotBlank(clazz.getCollege())){
+                predicate.getExpressions().add(cb.like(root.get("college"), "%" + clazz.getCollege() + "%"));
+            }
 
-        ExampleMatcher matcher = ExampleMatcher.matching();
-        Clazz matcherClazz = new Clazz();
-        if (StringUtils.isNotBlank(clazz.getName())){
-            matcher = matcher.withMatcher("name" , ExampleMatcher.GenericPropertyMatchers.contains());
-            matcherClazz.setName(clazz.getName());
-        }
-        if (StringUtils.isNotBlank(clazz.getCounselor())){
-            matcher = matcher.withMatcher("counselor" , ExampleMatcher.GenericPropertyMatchers.contains());
-            matcherClazz.setCounselor(clazz.getCounselor());
-        }
-        if (StringUtils.isNotBlank(clazz.getCollege())){
-            matcher = matcher.withMatcher("college" , ExampleMatcher.GenericPropertyMatchers.contains());
-            matcherClazz.setCollege(clazz.getCollege());
-        }
-        Example<Clazz> example = Example.of(clazz,matcher);
+            return predicate;
+        };
 
-        return clazzDao.findAll(example, pageable);
+        Page<Clazz> clazzPage = clazzDao.findAll(specification, pageable);
+        return clazzPage;
     }
 
     @Override
