@@ -84,8 +84,8 @@ public class TeacherController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page" ,value = "当前页数", required = true),
             @ApiImplicitParam(name = "limit" ,value = "每页限制数", required = true),
-            @ApiImplicitParam(name = "name" ,value = "班级名称", required = false),
-            @ApiImplicitParam(name = "username" ,value = "班级名称", required = false),
+            @ApiImplicitParam(name = "name" ,value = "教师名称", required = false),
+            @ApiImplicitParam(name = "username" ,value = "教师账号（学号）", required = false),
     })
 
     @ApiOperationSupport(ignoreParameters = {"id","state","create_time","update_time"})
@@ -99,8 +99,8 @@ public class TeacherController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id" ,value = "教师id", required = true),
             @ApiImplicitParam(name = "password" ,value = "修改的密码", required = false),
-            @ApiImplicitParam(name = "name" ,value = "管理员姓名", required = false),
-            @ApiImplicitParam(name = "state" ,value = "管理员状态", required = false),
+            @ApiImplicitParam(name = "name" ,value = "教师姓名", required = false),
+            @ApiImplicitParam(name = "state" ,value = "教师状态", required = false),
     })
     @ApiOperationSupport(ignoreParameters = {"id","username","createTime","updateTime"})
     @PostMapping("updateForManager")

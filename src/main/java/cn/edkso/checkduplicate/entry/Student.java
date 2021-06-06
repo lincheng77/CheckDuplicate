@@ -1,13 +1,11 @@
 package cn.edkso.checkduplicate.entry;
 
-import io.swagger.models.auth.In;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import java.sql.Date;
 import java.sql.Timestamp;
 
 @Data
@@ -24,6 +22,7 @@ public class Student {
     private String name;
     private Integer state;
     private Integer clazzId;
+    private String clazzName;
 
     @CreatedDate
     private Timestamp createTime;

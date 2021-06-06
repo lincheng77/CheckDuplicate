@@ -1,8 +1,10 @@
 package cn.edkso.checkduplicate.web.controller;
 
 import cn.edkso.checkduplicate.constant.ConfigDefault;
+import cn.edkso.checkduplicate.constant.NormalDefault;
 import cn.edkso.checkduplicate.entry.Student;
 import cn.edkso.checkduplicate.enums.ResultEnum;
+import cn.edkso.checkduplicate.exception.CDException;
 import cn.edkso.checkduplicate.service.StudentService;
 import cn.edkso.checkduplicate.vo.ResultVO;
 import cn.edkso.utils.MD5Utils;
@@ -16,13 +18,13 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -135,5 +137,57 @@ public class StudentController {
             return ResultVOUtil.success(studentRes);
         }
         return ResultVOUtil.error(ResultEnum.REGISTER_ERROR);
+    }
+
+
+    @ApiOperation(value = "获取教师通过分页,可带查询条件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page" ,value = "当前页数", required = true),
+            @ApiImplicitParam(name = "limit" ,value = "每页限制数", required = true),
+            @ApiImplicitParam(name = "name" ,value = "学生名称", required = false),
+            @ApiImplicitParam(name = "username" ,value = "学生账号（学号）", required = false),
+            @ApiImplicitParam(name = "clazzId" ,value = "学生所在班级Id", required = false),
+    })
+
+    @ApiOperationSupport(ignoreParameters = {"id","state","create_time","update_time"})
+    @GetMapping("listByPageForManager")
+    public ResultVO listByPage(Integer page, Integer limit, Student student){
+        Page<Student> studentPage = studentService.listByPage(page, limit,student);
+        return ResultVOUtil.success(studentPage);
+    }
+
+    @ApiOperation(value = "学生修改 - 管理员操作修改")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id" ,value = "教师id", required = true),
+            @ApiImplicitParam(name = "password" ,value = "修改的密码", required = false),
+            @ApiImplicitParam(name = "name" ,value = "学生员姓名", required = false),
+            @ApiImplicitParam(name = "state" ,value = "学生状态", required = false),
+            @ApiImplicitParam(name = "clazzId" ,value = "学生所在班级Id", required = false),
+            @ApiImplicitParam(name = "clazzName" ,value = "学生所在班级Id", required = false),
+    })
+    @ApiOperationSupport(ignoreParameters = {"id","username","createTime","updateTime"})
+    @PostMapping("updateForManager")
+    public ResultVO update(Student student){
+
+        Student resStudent = studentService.updateForManager(student);
+        if (resStudent != null){
+            return ResultVOUtil.success(resStudent);
+        }
+        return ResultVOUtil.error(ResultEnum.REGISTER_ERROR);
+    }
+
+
+    @ApiOperation(value = "学生删除 - 管理员操作删除")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "json" ,value = "需要删除记录组成的json", required = true),
+    })
+    @PostMapping("delForManager")
+    public ResultVO delForManager(@RequestBody List<Student> studentList){
+        try {
+            studentService.delForManager(studentList);
+            return ResultVOUtil.success(NormalDefault.DEL_SUCCESS);
+        }catch (CDException e){
+            return ResultVOUtil.error(e.getMessage());
+        }
     }
 }
