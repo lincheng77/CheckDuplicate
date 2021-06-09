@@ -406,6 +406,7 @@ public class HomeworkServiceImpl implements HomeworkService {
                 homeworkStudent.setState(1); //可用
                 homeworkStudent.setSubmitted(0); //未提交
                 homeworkStudent.setIsCheck(0); //未查重
+
                 homeworkStudent.setCodeRepeat(0.0f);
                 homeworkStudent.setImgRepeat(0.0f);
                 homeworkStudent.setTextRepeat(0.0f);

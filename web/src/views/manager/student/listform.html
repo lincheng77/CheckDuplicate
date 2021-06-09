@@ -1,0 +1,124 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>layuiAdmin 文章管理 iframe 框</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="stylesheet" href="../../../layuiadmin/layui/css/layui.css" media="all">
+</head>
+<body>
+
+  <div class="layui-form" lay-filter="layuiadmin-app-form-list" id="layuiadmin-app-form-list" style="padding: 20px 30px 0 0;">
+    <div class="layui-form-item" hidden>
+      <label class="layui-form-label">教师ID</label>
+      <div class="layui-input-inline">
+        <input type="text" name="id" id="id"  placeholder="请输入班级名称" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">教师名称</label>
+      <div class="layui-input-inline">
+        <input type="text" name="name" id="name" lay-verify="required" placeholder="请输入教师姓名" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">教师密码</label>
+      <div class="layui-input-inline">
+        <input type="text" name="password" id="password"  placeholder="如果不修改密码请留空！" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">所属班级</label>
+      <div class="layui-input-inline" >
+        <select name="clazzId"   id="clazzSelect" lay-search>
+          <option value="">若不修改请不要选择</option>
+        </select>
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">教师状态</label>
+      <div class="layui-input-inline">
+        <!-- 设置value="1"可自定义值，否则选中时返回的就是默认的on -->
+        <input type="checkbox" lay-verify="required" lay-filter="status" name="state" id="state" lay-skin="switch" lay-text="可使用|不可用" value="1">
+      </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+      <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit" value="确认添加">
+      <input type="button" lay-submit lay-filter="layuiadmin-app-form-edit" id="layuiadmin-app-form-edit" value="确认编辑">
+    </div>
+  </div>
+
+  <script src="../../../layuiadmin/layui/layui.js"></script>  
+  <script>
+  layui.config({
+    base: '../../../layuiadmin/' //静态资源所在路径
+  }).extend({
+    index: 'lib/index' //主入口模块
+  }).use(['index', 'form'], function(){
+    var $ = layui.$
+    ,admin = layui.admin
+    ,form = layui.form;
+    
+
+    var parent_json = eval('('+parent.json+')');
+    //修改表格中，默认的数据
+    if(parent_json != null){
+      console.log(parent_json)
+      //修改表格中，默认的数据
+      $(function () {
+        $('#id').val(parent_json.id);
+        $('#name').val(parent_json.name);
+        $('#password').val(parent_json.grade);
+        if (parent_json.state === 1){
+          $('#state').prop("checked", true);
+          form.render();
+        }
+    });
+    }
+
+    //带输入的选择框【查询科目】
+    var htmls = '<option value="">若不修改请不要选择</option>'; //全局变量
+    // var htmls = '<option value="">请输入or选择</option>'; //全局变量
+    admin.req({
+        url: layui.setter.reqUrl + '/clazz/listAll' //实际使用请改成服务端真实接口
+        ,type: 'get'
+        ,done: function(res){
+          clazzList = res.data;
+          for(var index in clazzList){
+            htmls += '<option value = "' + clazzList[index].id + '">' + clazzList[index].name + '</option>'
+          }
+          $("#clazzSelect").html(htmls);
+          form.render('select');//需要渲染一下
+        }
+    });
+    //监听提交
+    form.on('submit(layuiadmin-app-form-submit)', function(data){
+      var field = data.field; //获取提交的字段
+      var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引  
+      
+      //提交 Ajax 成功后，关闭当前弹层并重载表格
+      //$.ajax({});
+
+      admin.req({
+        url: layui.setter.reqUrl + '/clazz/add' //实际使用请改成服务端真实接口
+        ,data: field
+        ,type: 'post'
+        ,done: function(res){
+          parent.layui.table.reload('LAY-app-content-list'); //重载表格
+          parent.layer.close(index);//再执行关闭
+          parent.layer.msg('添加成功');
+        }
+      });
+
+      // parent.layui.table.reload('LAY-app-content-list'); //重载表格
+      // parent.layer.close(index); //再执行关闭
+      // layer.close(index); //再执行关闭 
+    });
+  })
+  </script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>layuiAdmin 文章管理 iframe 框</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="stylesheet" href="../../../layuiadmin/layui/css/layui.css" media="all">
+</head>
+<body>
+
+
+
+  <div class="layui-form" lay-filter="layuiadmin-app-form-list" id="layuiadmin-app-form-list" style="padding: 20px 30px 0 0;">
+
+    <div class="layui-form-item" hidden>
+      <label class="layui-form-label">作业Id</label>
+      <div class="layui-input-inline" style="width: 337px">
+        <input  type="text" name="id" id="id" lay-verify="required" placeholder="请输入班级名称" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">作业名称</label>
+      <div class="layui-input-inline" style="width: 337px">
+        <input  type="text" name="name" id="name" lay-verify="required" placeholder="请输入作业名称" autocomplete="off" class="layui-input">
+      </div>
+    </div>
+
+    <div class="layui-form-item">
+      <label class="layui-form-label">作业科目</label>
+      <div class="layui-input-inline" style="width: 337px">
+        <select name="subjectId" lay-verify="required"  id="subjectSelect" lay-search>
+          <option value="">直接选择或搜索选择</option>
+        </select>
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">作业内容</label>
+      <div class="layui-input-inline" style="width: 337px;">
+        <textarea style="min-height: 191px" name="content" id="content" required lay-verify="required" placeholder="请输入作业内容（2255字以内）" class="layui-textarea"></textarea>
+      </div>
+    </div>
+
+    <div class="layui-form-item">
+      <label class="layui-form-label">截止日期</label>
+      <div class="layui-input-inline" style="width: 337px">
+        <input type="text" name="deadline" class="layui-input" id="deadline" autocomplete="off" placeholder="请选择截止日期">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">所选班级</label>
+      <div class="layui-input-inline" style="width: 337px">
+        <input disabled style="border-style:none" type="text" name="clazzNames" id="clazzNames" lay-verify="required"  autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item" hidden>
+      <label class="layui-form-label">hdfs临时路径</label>
+      <div class="layui-input-inline" style="width: 337px">
+        <input type="text" name="tmpPath" id="tmpPath"  autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item" hidden>
+      <label class="layui-form-label">作业附件名</label>
+      <div class="layui-input-inline" style="width: 337px">
+        <input type="text" name="fileName" id="fileName"  autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item" hidden>
+      <label class="layui-form-label">作业附件随机名</label>
+      <div class="layui-input-inline" style="width: 337px">
+        <input type="text" name="fileRandomName" id="fileRandomName"  autocomplete="off" class="layui-input">
+      </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+      <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit" value="确认添加">
+      <input type="button" lay-submit lay-filter="layuiadmin-app-form-edit" id="layuiadmin-app-form-edit" value="确认编辑">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">作业附件</label>
+    <button type="button" class="layui-btn" id="homework-file">
+      <i class="layui-icon">&#xe67c;</i>上传文件
+    </button>
+  </div>
+
+  <script src="../../../layuiadmin/layui/layui.js"></script>  
+  <script>
+  layui.config({
+    base: '../../../layuiadmin/' //静态资源所在路径
+  }).extend({
+    index: 'lib/index' //主入口模块
+  }).use(['index', 'form'], function(){
+    var $ = layui.$
+    ,admin = layui.admin
+    ,upload = layui.upload
+    ,laydate = layui.laydate
+    ,form = layui.form;
+
+    var parent_json = eval('('+parent.json+')');
+    //修改表格中，默认的数据
+    if(parent_json != null){
+      //修改表格中，默认的数据
+      $(function () {
+        $('#id').val(parent_json.id);
+        $('#name').val(parent_json.name);
+        $('#content').val(parent_json.content);
+        $('#deadline').val(parent_json.deadline);
+      });
+    }
+    
+    //请求后端学科列表
+    //带输入的选择框【查询科目】
+    var htmls = '<option value=' + parent_json.subjectId + '>' + parent_json.subjectName +'</option>'; //全局变量
+    // var htmls = '<option value="">请输入or选择</option>'; //全局变量
+    admin.req({
+        url: layui.setter.reqUrl + '/subject/listAll' //实际使用请改成服务端真实接口
+        ,type: 'get'
+        ,done: function(res){
+          subjectList = res.data;
+          for(var index in subjectList){
+            if(parent_json.subjectId != subjectList[index].id){
+              htmls += '<option value = "' + subjectList[index].id + '">' + subjectList[index].name + '</option>'
+            }
+          }
+          $("#subjectSelect").html(htmls);
+          form.render('select');//需要渲染一下
+        }
+    });
+
+
+    //请求后端当前作业clazzNames
+    admin.req({
+        url: layui.setter.reqUrl + '/homework/listHomeworkClazz' //实际使用请改成服务端真实接口
+        ,type: 'post'
+        ,data:{
+          'homeworkId': parent_json.id
+        }
+        ,done: function(res){
+          clazzList = res.data;
+          var clazzNames = ''
+          for(var index in clazzList){
+            if(index == 0){
+              clazzNames = clazzNames + clazzList[index].clazzName
+            }else{
+              clazzNames = clazzNames + ',' +  clazzList[index].clazzName
+            }
+          }
+          $('#clazzNames').val(clazzNames);
+        }
+    });
+
+
+    //执行一个laydate实例【日期选择】
+    laydate.render({
+      elem: '#deadline' //指定元素
+      // ,show: true //直接显示
+      ,trigger: 'click' //采用click弹出
+      ,theme: 'molv'
+      ,format: 'yyyy-MM-dd HH:mm:ss' //可任意组合
+      ,type: 'datetime'
+    });
+
+    //执行实例【文件上传】
+    var uploadInst = upload.render({
+      elem: '#homework-file' //绑定元素
+      ,url: layui.setter.reqUrl + '/homework/upload' //上传接口
+      ,accept: 'file' //允许上传的文件类型
+      ,done: function(res){
+        if(res.code == 0){
+          console.log(res)
+          console.log(res.data.msg)
+          //上传完毕回调
+          layer.msg('上传完成！');
+          $('#fileName').val(res.data.fileName);
+          $('#tmpPath').val(res.data.tmpPath);
+          $('#fileRandomName').val(res.data.fileRandomName);
+          
+        }else{
+          //请求异常回调
+          layer.msg('上传文件失败，请务必重新上传文件！');
+        }
+
+      }
+      ,error: function(){
+        //请求异常回调
+        layer.msg('上传文件失败，请务必重新上传文件！');
+      }
+    });
+
+  })
+  </script>
+</body>
+</html>

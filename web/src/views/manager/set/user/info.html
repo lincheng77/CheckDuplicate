@@ -1,0 +1,96 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>设置我的资料</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="stylesheet" href="../../../../layuiadmin/layui/css/layui.css" media="all">
+  <link rel="stylesheet" href="../../../../layuiadmin/style/admin.css" media="all">
+</head>
+<body>
+
+  <div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+      <div class="layui-col-md12">
+        <div class="layui-card">
+          <div class="layui-card-header">设置我的资料</div>
+          <div class="layui-card-body" pad15>
+            
+            <div class="layui-form" lay-filter="">
+              <div class="layui-form-item">
+                <label class="layui-form-label">用户名</label>
+                <div class="layui-input-inline">
+                  <input type="text" name="username"  id="username" value="" readonly class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux">不可修改。一般用于后台登入名</div>
+              </div>
+              <div class="layui-form-item">
+                <label class="layui-form-label">学生姓名</label>
+                <div class="layui-input-inline">
+                  <input type="text" name="name" id="name" value="" lay-verify="nickname" autocomplete="off" placeholder="请输入昵称" class="layui-input">
+                </div>
+              </div>
+
+              <div class="layui-form-item">
+                <div class="layui-input-block">
+                  <button class="layui-btn" lay-submit lay-filter="setmyinfo">确认修改</button>
+                  <button type="reset" class="layui-btn layui-btn-primary">重新填写</button>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../../../layuiadmin/layui/layui.js"></script>  
+  <script>
+  layui.config({
+    base: '../../../../layuiadmin/' //静态资源所在路径
+  }).extend({
+    index: 'lib/index' //主入口模块
+  }).use(['index' ,'form'], function(){
+    var $ = layui.$
+    ,setter = layui.setter
+    ,admin = layui.admin
+    ,form = layui.form;
+
+    //从本地获取登录学生信息
+    var manager = layui.data(setter.tableName).manager
+    $("#username").val(manager.username);
+    $("#name").val(manager.name);
+
+
+    //监听提交
+    form.on('submit(setmyinfo)', function(data){
+      var field = data.field; //获取提交的字段
+
+
+      //提交 Ajax 成功后，关闭当前弹层并重载表格
+      //$.ajax({});
+      admin.req({
+        url: layui.setter.reqUrl + '/manager/update' //实际使用请改成服务端真实接口
+        ,data: field
+        ,type: 'post'
+        ,done: function(res){
+          layui.data(setter.tableName, {
+            key: 'manager'
+            ,value: res.data
+          });
+
+          layer.msg('成功');
+        }
+      });
+    });
+
+    
+  })
+  </script>
+</body>
+</html>
