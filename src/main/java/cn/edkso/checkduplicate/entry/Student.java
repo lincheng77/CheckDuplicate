@@ -24,6 +24,7 @@ public class Student {
     private Integer clazzId;
     private String clazzName;
 
+
     @CreatedDate
     private Timestamp createTime;
 

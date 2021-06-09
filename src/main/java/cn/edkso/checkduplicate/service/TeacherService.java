@@ -13,4 +13,7 @@ public interface TeacherService {
     Teacher updateForManager(Teacher teacher);
 
     void delForManager(List<Teacher> teacherList);
+
+    Teacher register(String username, String password, String name);
+
 }

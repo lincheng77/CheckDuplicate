@@ -38,6 +38,22 @@ public class TeacherController {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @ApiOperation(value = "教师注册")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "username" ,value = "教师学号", required = true),
+            @ApiImplicitParam(name = "password" ,value = "账号密码", required = true),
+            @ApiImplicitParam(name = "name" ,value = "教师姓名", required = true)
+    })
+    @PostMapping("register")
+    public ResultVO register(String username, String password, String name){
+        Teacher teacher = teacherService.register(username,password,name);
+        if (teacher != null){
+            return ResultVOUtil.success(teacher);
+        }
+        return ResultVOUtil.error(ResultEnum.REGISTER_ERROR);
+    }
+
+
     @ApiOperation(value = "教师登录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "username" ,value = "教师共号", required = true),

@@ -78,4 +78,16 @@ public class TeacherServiceImpl implements TeacherService {
             throw new CDException(ExceptionDefault.DEL_ERROR);
         }
     }
+
+    @Override
+    public Teacher register(String username, String password, String name) {
+        Teacher teacher = new Teacher();
+        teacher.setState(1);
+        teacher.setName(name);
+        teacher.setUsername(username);
+        teacher.setPassword(MD5Utils.md5(password));
+        teacher.setName(name);
+        Teacher resTeacher = teacherDao.save(teacher);
+        return resTeacher;
+    }
 }

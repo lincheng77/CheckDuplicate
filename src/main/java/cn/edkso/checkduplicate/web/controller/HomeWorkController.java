@@ -15,12 +15,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
@@ -195,7 +188,7 @@ public class HomeWorkController {
                                          Integer homeworkId,
                                        Integer submitted,
                                        Integer isCheck,
-                                       Integer ClazzId,
+                                       Integer clazzId,
                                        String startTime,
                                        String deadline){
         //1. 通过token，从redis获取用户
@@ -206,7 +199,7 @@ public class HomeWorkController {
         }
 
         Page<HomeworkStudent> homeworkStudentPage = homeworkService.listByPageForDetails(page, limit,
-                homeworkId,submitted,startTime,deadline, isCheck,ClazzId);
+                homeworkId,submitted,startTime,deadline, isCheck,clazzId);
         return ResultVOUtil.success(homeworkStudentPage);
     }
 

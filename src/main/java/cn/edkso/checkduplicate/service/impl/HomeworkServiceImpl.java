@@ -14,17 +14,15 @@ import cn.edkso.checkduplicate.service.StudentService;
 import cn.edkso.checkduplicate.service.SubjectService;
 import cn.edkso.utils.FileUtils;
 import cn.textcheck.CheckManager;
-import cn.textcheck.engine.algorithm.ContinuityCheck;
 import cn.textcheck.engine.checker.CheckTask;
 import cn.textcheck.engine.pojo.LocalPaperLibrary;
 import cn.textcheck.engine.pojo.Paper;
 import cn.textcheck.engine.report.Reporter;
-import cn.textcheck.engine.type.CheckLevel;
-import io.swagger.models.auth.In;
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.fs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -165,11 +163,11 @@ public class HomeworkServiceImpl implements HomeworkService {
             predicate.getExpressions().add(cb.equal(root.get("homeworkId"), homeworkId));
 
             //增加筛选条件-1(查重情况)
-            if(isCheck != null && submitted != -1){
+            if(isCheck != null && isCheck!=-1){
                 predicate.getExpressions().add(cb.equal(root.get("state"), isCheck));
             }
             //增加筛选条件0(班级id)
-            if(clazzId != null && submitted != -1){
+            if(clazzId != null && clazzId!=-1){
                 predicate.getExpressions().add(cb.equal(root.get("clazzId"), clazzId));
             }
 
@@ -544,7 +542,7 @@ public class HomeworkServiceImpl implements HomeworkService {
     @Override
     public void checkOne(HomeworkStudent homeworkStudent) throws IOException, InterruptedException {
 
-        CheckManager.INSTANCE.setRegCode("cbhUJXb/GhXSa0r9XCE/yvUv4Dywc5dbKhzuIEgKWzRuz6pXPg5CmrasWi7svizYtESqUgHjLwe6uDUQ9xp0yWJXp403E8q6Ar8cBqUc3GXt/o6Hn9yLR1rGCB9C3c7mKWf8xoW8YlhC80dkrrEhHfEe1KmDFYbju4Xs3DE4DFbsyqOy6tbnEHvLd/EGOXw5lQHcVOkMgbpKvEt6vPkZeRbWZ44yYSVOdI0Awkp9M6RgPqKMLSQ7st22W2XdoiThAlyVYCxPNdM1Ak4wqcEj8L3kUlvs9XTuxyPkjNb9rPQdElXlQk8sNPprkllFtnTPR5xrgoBohOyaeppNE/+JA5ncZ98LBsi/JwLtautfF3AOYkMW8y0C+IEvy/8IT22mrXBtwWs+Gm++DKBTWjIxt+6omZbHmxZ/A+E7syl5tP9u5Ev+yqvqlfxoKkg33e9Z44UYZThww04s06tucjQb96TUY8HKm7M0H37qWUTZ8TY=");
+        CheckManager.INSTANCE.setRegCode("cbhUJXb/GhXSa0r9XCE/yvUv4Dywc5dbKhzuIEgKWzRuz6pXPg5CmrasWi7svizYtESqUgHjLwe6uDUQ9xp0yWJXp403E8q6Ar8cBqUc3GXt/o6Hn9yLR1rGCB9C3c7mKWf8xoW8YlhC80dkrrEhHfEe1KmDFYbju4Xs3DE4DFbsyqOy6tbnEHvLd/EGOXw5lQHcVOkMgbpKvEt6vPkZeRbWZ44yYSVOdI0Awkp9M6RgPqKMLSQ7st22W2XdoiThAlyVYCxPNdM1Ak4wqcEj8L3kUlvs9XTuxyPkjNb9rPQdElXlQk8sNPprkllFtnTPR5xrgoBohOyaeppNE/+JA5ncZ98LBsi/JwLtautfF3AOYkMW8y0C+IEvy/8IT22mrXBtwWs+Gm++DKBTWjIxt+6omZbHmxZ/A+E7syl5tP9u5Ev+yqvqlfxoKkg33e9Z44UYZThww04s06tucjQb9wpKn/pa1/B4XG4UPkfUsf0=");
 
         //通过<文件夹>加载本地比对库（支持pdf、txt、doc、docx）
         LocalPaperLibrary paperLibrary = LocalPaperLibrary.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath()));//初始化对比库对象
