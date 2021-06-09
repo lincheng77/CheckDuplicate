@@ -18,6 +18,7 @@ import cn.textcheck.engine.checker.CheckTask;
 import cn.textcheck.engine.pojo.LocalPaperLibrary;
 import cn.textcheck.engine.pojo.Paper;
 import cn.textcheck.engine.report.Reporter;
+import cn.textcheck.engine.type.ReportType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -542,7 +543,7 @@ public class HomeworkServiceImpl implements HomeworkService {
     @Override
     public void checkOne(HomeworkStudent homeworkStudent) throws IOException, InterruptedException {
 
-        CheckManager.INSTANCE.setRegCode("cbhUJXb/GhXSa0r9XCE/yvUv4Dywc5dbKhzuIEgKWzRuz6pXPg5CmrasWi7svizYtESqUgHjLwe6uDUQ9xp0yWJXp403E8q6Ar8cBqUc3GXt/o6Hn9yLR1rGCB9C3c7mKWf8xoW8YlhC80dkrrEhHfEe1KmDFYbju4Xs3DE4DFbsyqOy6tbnEHvLd/EGOXw5lQHcVOkMgbpKvEt6vPkZeRbWZ44yYSVOdI0Awkp9M6RgPqKMLSQ7st22W2XdoiThAlyVYCxPNdM1Ak4wqcEj8L3kUlvs9XTuxyPkjNb9rPQdElXlQk8sNPprkllFtnTPR5xrgoBohOyaeppNE/+JA5ncZ98LBsi/JwLtautfF3AOYkMW8y0C+IEvy/8IT22mrXBtwWs+Gm++DKBTWjIxt+6omZbHmxZ/A+E7syl5tP9u5Ev+yqvqlfxoKkg33e9Z44UYZThww04s06tucjQb9wpKn/pa1/B4XG4UPkfUsf0=");
+        CheckManager.INSTANCE.setRegCode("0CKeFMRpiisguag3PsbD2G2xnpf/KnTUq2nzkyqIy57G+MMXnEC/erWlTJ3RM3wNBcojxmijrKYyDKwLjLC9ApUCldeFKNl9oCUZ5b3e2sN0NAErSUKZZP5rz0ErsmUqMoWi5GDbccj77FEAokNInAx2mJ5Y9Aq9S35rmwKdmw8CcH1YmYINlJDI0G7hVCMSf21+dMRa5uXz/LbEnBI3GmbqISJYssLewgp8HmMluf9WLEuQBQLheest3LyT/+hsbTDeE2IPgDB37cxmtzR4jomz3Ca91D7p3YwgXZnwSJRpZIr9f7ggfagTACHA+9Y/N6/wJ0qEJOKxbQ8MTI3WMWHl/pN3qlja8pj2zpfwWFNQqZoKWVFUgM/3IkikBrBHV3FvnFdAtsPei2zhVholzj2jPCNxwS2gDbbkrvRsEBj69nih8ttzqkSNhh/HwBQbv7qPf52YMRTzMC1qHQ5T1iBeyG1fQc2LZ1p+Cg44CkI=");
 
         //通过<文件夹>加载本地比对库（支持pdf、txt、doc、docx）
         LocalPaperLibrary paperLibrary = LocalPaperLibrary.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath()));//初始化对比库对象
@@ -564,15 +565,24 @@ public class HomeworkServiceImpl implements HomeworkService {
         checkTask.start(); //启动任务
         checkTask.join(); //等待查重结束（阻塞）
 
+
         for (Reporter reporter : checkTask.getReporters()) {
             homeworkStudent.setTextRepeat(Float.valueOf(reporter.getCopyRate()));
             homeworkStudent.setIsCheck(1);
             homeworkStudentDao.save(homeworkStudent);
+            reporter.saveAsFile(FileUtils.getStaticPath() + "/" + paper.getTitle() + ".html", ReportType.TEXT_WITH_CITATION);
         }
     }
 
     @Override
     public Homework findHomeworkById(Integer id) {
         return homeworkDao.findById(id).get();
+    }
+
+    @Override
+    public Page<Homework> noSubmitStudentList(Integer page, Integer limit, Integer homeworkId, Integer clazzId) {
+
+
+        return null;
     }
 }

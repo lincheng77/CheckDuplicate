@@ -1,6 +1,6 @@
 package cn.edkso.checkduplicate.vo;
 
-import jdk.nashorn.internal.parser.Token;
+
 import lombok.Data;
 
 @Data

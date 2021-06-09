@@ -435,4 +435,19 @@ public class HomeWorkController {
         }
         return ResultVOUtil.error(ResultEnum.PARAMS_ERROR_OR_SYSTEM_EXCEPTION);
     }
+
+
+    @ApiOperation(value = "查询当前未交学生名单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page" ,value = "当前页数", required = true),
+            @ApiImplicitParam(name = "limit" ,value = "每页限制数", required = true),
+            @ApiImplicitParam(name = "homeworkId" ,value = "作业id", required = true),
+            @ApiImplicitParam(name = "clazzId" ,value = "班级id", required = false),
+    })
+    @GetMapping("noSubmitStudentList")
+    public ResultVO noSubmitStudentList(Integer page, Integer limit,
+                                        Integer homeworkId, Integer clazzId){
+        Page<Homework> homeworkPage = homeworkService.noSubmitStudentList(page, limit,homeworkId,clazzId);
+        return ResultVOUtil.success(homeworkPage);
+    }
 }
