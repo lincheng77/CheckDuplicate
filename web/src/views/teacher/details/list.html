@@ -59,26 +59,32 @@
       </div>
 
       <div class="layui-card-body">
-        <!-- <div style="padding-bottom: 10px;">
-          <button class="layui-btn layuiadmin-btn-list" data-type="batchdel">删除</button>
-          <button class="layui-btn layuiadmin-btn-list" data-type="add">添加</button>
-        </div> -->
+
         <ul class="layui-nav" style="text-align: center;">
-          <li class="">
-            <div><b id="homeworkName"></b></div>
-          </li>          
-          <div style="margin-top: -10px;">
-            <li class="layui-nav-item">
-              <div><b id="curClazzNmae"></b></div>
-            </li>
-            <li class="layui-nav-item">
-              <a >上交人数<span class="layui-badge layui-bg-green" id="curClazzSubmitted">9</span></a>
-            </li>
-            &nbsp;&nbsp;
-            <li class="layui-nav-item">
-              <a >未交人数<span class="layui-badge" id="curClazzNoSubmitted">10</span></a>
-            </li>
+          <div style="float:right;margin-top: 35px;margin-right: 21px" >
+            <button class="layui-btn layui-btn-xs layuiadmin-btn-list" data-type="batchdel">打包下载附件</button>
+            <button class="layui-btn layui-btn-xs layuiadmin-btn-list" data-type="add">一件查重</button>
           </div>
+
+          <div style="display: inline-block">
+            <li class="">
+              <div><b id="homeworkName"></b></div>
+            </li>
+            <div style="margin-top: -10px;">
+              <li class="layui-nav-item">
+                <div><b id="curClazzNmae"></b></div>
+              </li>
+              <li class="layui-nav-item">
+                <a >上交人数<span class="layui-badge layui-bg-green" id="curClazzSubmitted">9</span></a>
+              </li>
+              &nbsp;&nbsp;
+              <li class="layui-nav-item">
+                <a >未交人数<span class="layui-badge" id="curClazzNoSubmitted">10</span></a>
+              </li>
+            </div>
+          </div>
+
+
         </ul>
 
 
@@ -92,12 +98,12 @@
         </script>
 
         <script type="text/html" id="buttonTpl-isCheck">
-          {{#  if(d.isCheck == 1 && d.textRepeat <= 0.20){ }}
-              <span class="layui-badge-dot layui-bg-green"></span>&nbsp;重复率:{{d.textRepeat}}
-          {{#  } else if(d.isCheck == 1 && d.textRepeat <= 0.30) { }}
-              <span class="layui-badge-dot layui-bg-orange"></span>&nbsp;重复率:{{d.textRepeat}}
+          {{#  if(d.isCheck == 1 && d.textRepeat <= 20){ }}
+              <span class="layui-badge-dot layui-bg-green"></span>&nbsp;重复率:{{d.textRepeat}}%
+          {{#  } else if(d.isCheck == 1 && d.textRepeat <= 30) { }}
+              <span class="layui-badge-dot layui-bg-orange"></span>&nbsp;重复率:{{d.textRepeat}}%
           {{#  } else if(d.isCheck == 1 ) { }}
-              <span class="layui-badge-dot"></span>&nbsp;重复率:{{d.textRepeat}}
+              <span class="layui-badge-dot"></span>&nbsp;重复率:{{d.textRepeat}}%
           {{#  } else { }}
             <button class="layui-btn layui-btn-primary layui-btn-xs">未查重</button>
           {{#  } }}
@@ -154,12 +160,14 @@
       });
     }
 
+
     //初次加载 导航显示 homeworkName
     $("#homeworkName").html(_get('name'));
     console.log(_get('name'))
     $("#curClazzNmae").html("作业总计");
     $("#curClazzSubmitted").html(_get('submitted'));
     $("#curClazzNoSubmitted").html(_get('total'));
+
 
     //老师作业详情列表
     table.render({
@@ -201,7 +209,7 @@
         url: layui.setter.reqUrl + '/homework/listHomeworkClazz' //实际使用请改成服务端真实接口
         ,type: 'post'
         ,data: {
-          'homeworkId': 26
+          'homeworkId': homeworkId
         }
         ,done: function(res){
           var homeworkClazzList = res.data;
@@ -275,7 +283,6 @@
         where: field
       });
     });
-    
 
 
     var $ = layui.$, active = {

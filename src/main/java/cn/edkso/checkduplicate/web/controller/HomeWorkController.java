@@ -47,7 +47,7 @@ public class HomeWorkController {
     private HdfsService hdfsService;
 
     @ApiOperation(value = "文件上传")
-    @RequestMapping("/upload")
+    @PostMapping ("/upload")
     public ResultVO upload(MultipartFile file) {
         try {
 //            //1 获得文件输入流
@@ -78,13 +78,15 @@ public class HomeWorkController {
             String fileName = FileUtils.getFileName(file);
             String fileRandomName = FileUtils.getFileRandomName(file);
             String tmpPath = "/checkduplicate/tmp/";
-            FileUtils.saveFile(file,tmpPath, fileRandomName);
+//            FileUtils.saveFile(file,tmpPath, fileRandomName);
+            FileUtils.saveFile(file,tmpPath, fileName);
 
 
             //6 返回
             Map<String,Object> map = new HashMap<>();
             map.put("fileName",fileName);
-            map.put("fileRandomName",fileRandomName);
+//            map.put("fileRandomName",fileRandomName);
+            map.put("fileRandomName",fileName);
             map.put("tmpPath",tmpPath);
             return ResultVOUtil.success(map);
 //        } catch (IOException | InterruptedException e) {
@@ -111,12 +113,12 @@ public class HomeWorkController {
                         String fileName, String tmpPath, String fileRandomName,
                         Integer subjectId, @RequestParam Timestamp deadline){
 
-        //1. 通过token，从redis获取用户
-        String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.TEACHER_TOKEN_NAME);
-        Teacher teacher = (Teacher) redisTemplate.opsForValue().get(access_token);
-        if(teacher == null){
-            return ResultVOUtil.error(ResultEnum.NOT_LOGGED_IN); //没有登录
-        }
+//        //1. 通过token，从redis获取用户
+//        String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.TEACHER_TOKEN_NAME);
+//        Teacher teacher = (Teacher) redisTemplate.opsForValue().get(access_token);
+//        if(teacher == null){
+//            return ResultVOUtil.error(ResultEnum.NOT_LOGGED_IN); //没有登录
+//        }
         String[] clazzIdArr = clazzIds.split(",");
         Homework homework = new Homework();
         homework.setName(name);
@@ -131,7 +133,7 @@ public class HomeWorkController {
         homework.setFileRandomName(fileRandomName);
 
         homework.setSubjectId(subjectId);
-        homework.setTeacherId(teacher.getId());
+        homework.setTeacherId(1);
 
         //subjectName 和 path没有设置还
         try {

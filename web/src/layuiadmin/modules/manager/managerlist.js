@@ -312,11 +312,11 @@
     ,cols: [[
       {type: 'checkbox', fixed: 'left'}
       ,{field: 'id', width: 200, title: '学生ID', sort: true}
-      ,{field: 'username', title: '学生账号（学号）', minWidth: 300}
-      ,{field: 'name', title: '学生姓名', minWidth: 300}
-      ,{field: 'clazzName', title: '学生班级', minWidth: 300}
+      ,{field: 'username', title: '学生账号（学号）', minWidth: 230}
+      ,{field: 'name', title: '学生姓名', minWidth: 230}
+      ,{field: 'clazzName', title: '学生班级', minWidth: 230}
       ,{field: 'state', title: '状态', templet: '#buttonTpl', minWidth: 120, align: 'center'}
-      ,{title: '操作', width: 250, align: 'center', fixed: 'right', toolbar: '#table-student-list'}
+      ,{title: '操作', minWidth: 250, align: 'center', fixed: 'right', toolbar: '#table-student-list'}
     ]]
     ,page: true
     ,limit: 10

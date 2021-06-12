@@ -19,6 +19,7 @@ import cn.textcheck.engine.pojo.LocalPaperLibrary;
 import cn.textcheck.engine.pojo.Paper;
 import cn.textcheck.engine.report.Reporter;
 import cn.textcheck.engine.type.ReportType;
+import cn.textcheck.starter.EasyStarter;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -547,31 +548,48 @@ public class HomeworkServiceImpl implements HomeworkService {
         CheckManager.INSTANCE.setRegCode("0CKeFMRpiisguag3PsbD2G2xnpf/KnTUq2nzkyqIy57G+MMXnEC/erWlTJ3RM3wNBcojxmijrKYyDKwLjLC9ApUCldeFKNl9oCUZ5b3e2sN0NAErSUKZZP5rz0ErsmUqMoWi5GDbccj77FEAokNInAx2mJ5Y9Aq9S35rmwKdmw8CcH1YmYINlJDI0G7hVCMSf21+dMRa5uXz/LbEnBI3GmbqISJYssLewgp8HmMluf9WLEuQBQLheest3LyT/+hsbTDeE2IPgDB37cxmtzR4jomz3Ca91D7p3YwgXZnwSJRpZIr9f7ggfagTACHA+9Y/N6/wJ0qEJOKxbQ8MTI3WMWHl/pN3qlja8pj2zpfwWFNQqZoKWVFUgM/3IkikBrBHV3FvnFdAtsPei2zhVholzj2jPCNxwS2gDbbkrvRsEBj69nih8ttzqkSNhh/HwBQbv7qPf52YMRTzMC1qHQ5T1iBeyG1fQc2LZ1p+Cg44CkI=");
 
         //通过<文件夹>加载本地比对库（支持pdf、txt、doc、docx）
-        LocalPaperLibrary paperLibrary = LocalPaperLibrary.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath()));//初始化对比库对象
+//        LocalPaperLibrary paperLibrary = LocalPaperLibrary.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath()));//初始化对比库对象
 
         //读取待查重的<文件>（支持pdf、txt、doc、docx）
         Paper paperTeacher = Paper.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + "/" + homeworkStudent.getFileRandomName())); //读取本地<文件>
-        Paper paper = Paper.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + "/" + homeworkStudent.getStudentFileRandomName())); //读取本地<文件>
+//        Paper paper = Paper.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + "/" + homeworkStudent.getStudentFileRandomName())); //读取本地<文件>
+//
+//        //注意：待查文本和比对库中的文本如果完全相同，将会自动跳过，不进行查重比对。测试时请不要使用完全相同的两个文本进行查重。
+//
+//        //构建并启动任务
+//        CheckTask checkTask = CheckManager.INSTANCE
+//                .getCheckTaskBuilder() //获取查重任务构造器
+//                .addLibrary(paperLibrary) //添加比对库。可以添加多个
+//                .addCheckPaper(paper) //添加待查Paper。可以添加多个
+////                .addCheckCore(new ContinuityCheck(CheckLevel.STRICT))
+////                .addWhiteWord(paperTeacher.getText())
+//                .build(); //构建任务，返回checkTask对象
+//        checkTask.start(); //启动任务
+//        checkTask.join(); //等待查重结束（阻塞）
 
-        //注意：待查文本和比对库中的文本如果完全相同，将会自动跳过，不进行查重比对。测试时请不要使用完全相同的两个文本进行查重。
+        File resFilePath = new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + "/res/");
+        if (!resFilePath.exists()){
+            resFilePath.mkdirs();
+        }
+        System.out.println(resFilePath.getPath());
 
-        //构建并启动任务
-        CheckTask checkTask = CheckManager.INSTANCE
-                .getCheckTaskBuilder() //获取查重任务构造器
-                .addLibrary(paperLibrary) //添加比对库。可以添加多个
-                .addCheckPaper(paper) //添加待查Paper。可以添加多个
-//                .addCheckCore(new ContinuityCheck(CheckLevel.STRICT))
-//                .addWhiteWord(paperTeacher.getText())
-                .build(); //构建任务，返回checkTask对象
-        checkTask.start(); //启动任务
-        checkTask.join(); //等待查重结束（阻塞）
+        List<Reporter> reporters = EasyStarter.check(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + "/" + homeworkStudent.getStudentFileRandomName()),
+                new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath()),
+                resFilePath.getPath(),
+                paperTeacher.getText());
 
 
-        for (Reporter reporter : checkTask.getReporters()) {
+//        for (Reporter reporter : checkTask.getReporters()) {
+//            homeworkStudent.setTextRepeat(Float.valueOf(reporter.getCopyRate()));
+//            homeworkStudent.setIsCheck(1);
+//            homeworkStudentDao.save(homeworkStudent);
+//            reporter.saveAsFile(FileUtils.getStaticPath() + "/" + paper.getTitle() + ".html", ReportType.TEXT_WITH_CITATION);
+//        }
+//
+        for (Reporter reporter : reporters) {
             homeworkStudent.setTextRepeat(Float.valueOf(reporter.getCopyRate()));
             homeworkStudent.setIsCheck(1);
             homeworkStudentDao.save(homeworkStudent);
-            reporter.saveAsFile(FileUtils.getStaticPath() + "/" + paper.getTitle() + ".html", ReportType.TEXT_WITH_CITATION);
         }
     }
 

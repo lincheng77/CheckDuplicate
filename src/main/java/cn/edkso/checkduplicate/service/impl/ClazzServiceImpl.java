@@ -48,6 +48,11 @@ public class ClazzServiceImpl implements ClazzService {
                 predicate.getExpressions().add(cb.like(root.get("college"), "%" + clazz.getCollege() + "%"));
             }
 
+            //增加筛选条件3(年级模糊匹配)
+            if ((clazz.getGrade() != null)){
+                predicate.getExpressions().add(cb.equal(root.get("grade"), clazz.getGrade()));
+            }
+
             return predicate;
         };
 
