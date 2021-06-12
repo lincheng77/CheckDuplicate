@@ -356,7 +356,8 @@ public class HomeworkServiceImpl implements HomeworkService {
 
         //3. 把hdfs tmp文件转移到相应的文件路径
         String oldPathStr = tmpPath;
-        String newPathStr = "/checkduplicate/homework/" +  subject.getId() + "/"+  subject.getId() + "/" + homeworkRes.getId() +"/";
+        //1默认学院id
+        String newPathStr = "/checkduplicate/homework/" +  "1" + "/"+  subject.getId() + "/" + homeworkRes.getId() +"/";
         try {
 //            if(!hdfsService.renameFile(oldPathStr , newPathStr, homework.getFileRandomName())){
 //                throw new CDException("文件系统发生异常，请尝试重新提交");

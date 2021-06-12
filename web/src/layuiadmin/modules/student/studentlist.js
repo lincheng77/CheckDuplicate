@@ -117,12 +117,7 @@
       });
     } else if(obj.event === 'down'){
       console.log(data)
-      
-      // var formDown = $('<form method="POST" action="' + layui.setter.reqUrl + 'homework/down' +'">');
-      // console.log(formDown)
-      // formDown.append($('<input type="hidden" name="filePath" value="'+ data.filePath +'">'));
-      // $('body').append(formDown);
-      // formDown.submit();
+
       window.open(layui.setter.reqUrl + "/homework/down?" 
             + "filePath="+ data.filePath
             + "&fileName="+ data.fileName

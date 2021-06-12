@@ -65,16 +65,24 @@ public class StudentServiceImpl implements StudentService {
     public List<Student> addListByImport(List<ArrayList<String>> excelList, Integer clazzId) {
 
         //1. 查询clazz
+//        Clazz clazz = clazzService.findById(clazzId);//暂时无用
+
+        clazzId = Integer.valueOf(excelList.get(1).get(0));
         Clazz clazz = clazzService.findById(clazzId);
 
         //2. 组装studentList
         List<Student> studentList = new ArrayList<>();
         for (int i = 1; i < excelList.size(); i++) {
+            if (clazzId != Integer.valueOf(excelList.get(i).get(0))){
+                clazzId = Integer.valueOf(excelList.get(i).get(0));
+                clazz = clazzService.findById(clazzId);
+            }
+
             Student student = new Student();
-            student.setUsername(excelList.get(i).get(0));
-            student.setName(excelList.get(i).get(1));
+            student.setUsername(excelList.get(i).get(1));
+            student.setName(excelList.get(i).get(2));
             student.setPassword(MD5Utils.md5("123456"));
-            student.setClazzId(clazzId);
+            student.setClazzId(clazz.getId());
             student.setClazzName(clazz.getName());
             student.setState(1);
 

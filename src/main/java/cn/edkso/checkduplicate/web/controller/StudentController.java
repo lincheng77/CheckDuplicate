@@ -20,7 +20,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -145,7 +150,7 @@ public class StudentController {
 
     @ApiOperation(value = "学生导入注册")
     @PostMapping("/addListByImport")
-    public ResultVO addListByImport(MultipartFile file, Integer clazzId) {
+    public ResultVO addListByImport(MultipartFile file) {
 
 
         String name=file.getOriginalFilename();
@@ -155,14 +160,14 @@ public class StudentController {
 
         ReadExcelUtil readExcelUtil = new ReadExcelUtil();
         List<ArrayList<String>> excelList = readExcelUtil.readExcel(file);
-        if (excelList.get(0).size() != 2){
+        if (excelList.get(0).size() != 3){
             return ResultVOUtil.error("上传excel列数与模板列数不同");
         }
-        if (!excelList.get(0).get(0).equals("学号") || !excelList.get(0).get(0).equals("学号")){
+        if (!excelList.get(0).get(0).equals("班级ID") || !excelList.get(0).get(1).equals("学号") || !excelList.get(0).get(2).equals("姓名")){
             return ResultVOUtil.error("上传excel列标题与模板列标题不同");
         }
 
-        List<Student> studentList = studentService.addListByImport(excelList, clazzId);
+        List<Student> studentList = studentService.addListByImport(excelList, 1); //1暂无作用
         if (studentList != null){
             return ResultVOUtil.success(studentList);
         }
@@ -220,5 +225,41 @@ public class StudentController {
         }catch (CDException e){
             return ResultVOUtil.error(e.getMessage());
         }
+    }
+
+    @ApiOperation(value = "文件下载")
+    @GetMapping("/downStudentTemp")
+    public ResultVO downStudentTemp() {
+        try {
+            File file = new File(FileUtils.getStaticPath() + "/system-file/学生名单导入注册模板.xlsx");
+            FileInputStream in = new FileInputStream(file);
+
+            //设置resposne响应头
+            //设置响应头类型
+            ServletContext servletContext = ServletUtils.getServletContext();
+            HttpServletResponse response = ServletUtils.getResponse();
+            String mimeTyep = servletContext.getMimeType("学生名单导入注册模板.xlsx");
+            response.setHeader("content-type",mimeTyep);
+//            response.setCharacterEncoding("utf-8"); //不知道干啥具体
+            //设置响应头打开方式 );
+            response.setHeader("content-disposition","attachment;filename="+ java.net.URLEncoder.encode("学生名单导入注册模板.xlsx", "UTF-8"));
+
+            //获取输出流(具体到文件名)
+            ServletOutputStream out = response.getOutputStream();
+
+            //将输入流的数据写出到输出流中
+            byte[] buf = new byte[1024*8];
+            int len=0;
+            while ((len = in.read(buf))!=-1){
+                out.write(buf,0,len);
+            }
+
+            in.close();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("OVER");
+        return null;
     }
 }

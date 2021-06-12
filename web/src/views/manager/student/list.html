@@ -40,11 +40,13 @@
         </div>
       </div>
 
+
+
       <div class="layui-card-body">
         <div style="padding-bottom: 10px;">
           <button class="layui-btn layuiadmin-btn-list" data-type="batchdel">删除</button>
-          <button class="layui-btn layuiadmin-btn-list" data-type="add">批量导入</button>
-          <button type="button" class="layui-btn layui-btn-primary">
+          <button class="layui-btn layuiadmin-btn-list" lay-event="addListByImport" id="addListByImport" data-type="addListByImport">批量导入</button>
+          <button class="layui-btn layui-btn-primary layuiadmin-btn-list" data-type="downStudentTemp" >
             <i class="layui-icon layui-icon-download-circle"></i>下载导入模板
           </button>
         </div>
@@ -74,6 +76,7 @@
   }).use(['index' ,'managerlist', 'table'], function(){
     var table = layui.table
     ,admin = layui.admin
+    ,upload = layui.upload
     ,form = layui.form;
     
     //监听搜索
@@ -115,14 +118,6 @@
         }
       
         layer.confirm('确定删除吗？', function(index) {
-          
-          //执行 Ajax 后重载
-          /*
-          admin.req({
-            url: 'xxx'
-            //,……
-          });
-          */
           admin.req({
             url: layui.setter.reqUrl + '/student/delForManager' //实际使用请改成服务端真实接口
             ,data: JSON.stringify(checkData)
@@ -133,26 +128,38 @@
               layer.msg('已删除');
             }
           });
-          // table.reload('LAY-app-content-list');
-          // layer.msg('已删除');
         });
       },
-      add: function(){
-        layer.open({
-          type: 2
-          ,title: '添加文章'
-          ,content: 'listform.html'
-          ,maxmin: true
-          ,area: ['550px', '550px']
-          ,btn: ['确定', '取消']
-          ,yes: function(index, layero){
-            //点击确认触发 iframe 内容中的按钮提交
-            var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
-            submit.click();
-          }
-        }); 
+      downStudentTemp: function(){
+        window.open(layui.setter.reqUrl + "/student/downStudentTemp");
+      },
+      addListByImport: function(){
+
       }
-    }; 
+    };
+
+    //执行实例【文件上传】
+    uploadInst = upload.render({
+      elem: '#addListByImport' //绑定元素
+      ,url: layui.setter.reqUrl + '/student/addListByImport' //上传接口
+      ,accept: 'file' //允许上传的文件类型
+      ,done: function(res){
+        if(res.code == 0){
+          //上传完毕回调
+          layer.msg('导入注册完成，注册过的账号已经忽略！');
+        }else{
+          //请求异常回调
+          layer.msg('导入注册失败（服务器业务异常），请务必重新上传文件！');
+        }
+      }
+      ,error: function(){
+        //请求异常回调
+        layer.msg('导入注册失败（服务器上传异常），请务必重新上传文件！');
+      }
+    });
+
+
+
 
     $('.layui-btn.layuiadmin-btn-list').on('click', function(){
       var type = $(this).data('type');
