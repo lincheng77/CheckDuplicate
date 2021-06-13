@@ -22,7 +22,7 @@ public class CommonTest {
 //        FileInputStream in = new FileInputStream(file);
 //
 //
-//        MultipartFile multipartFile = new MockMultipartFile("ceshi", in);
+//        MultipartFile multipartFile F= new MockMultipartFile("ceshi", in);
 //
 //        ReadExcelUtil readExcelUtil = new ReadExcelUtil();
 //        readExcelUtil.readExcel(multipartFile);

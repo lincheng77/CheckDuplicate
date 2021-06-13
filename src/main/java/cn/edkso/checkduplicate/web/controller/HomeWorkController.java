@@ -11,6 +11,7 @@ import cn.edkso.checkduplicate.vo.ResultVO;
 import cn.edkso.utils.FileUtils;
 import cn.edkso.utils.ResultVOUtil;
 import cn.edkso.utils.ServletUtils;
+import cn.edkso.utils.ZipUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -26,11 +27,15 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 @Api(tags = "作业模块")
 @RestController
@@ -264,6 +269,7 @@ public class HomeWorkController {
             @ApiImplicitParam(name = "id" ,value = "作业-学生Id", required = true),
             @ApiImplicitParam(name = "homeworkId" ,value = "作业Id", required = true),
             @ApiImplicitParam(name = "clazzId" ,value = "班级Id", required = true),
+            @ApiImplicitParam(name = "clazzName" ,value = "班级名称", required = true),
             @ApiImplicitParam(name = "filePath" ,value = "老师作业目录", required = true),
             @ApiImplicitParam(name = "studentFileName" ,value = "学生提交作业文件名", required = true),
             @ApiImplicitParam(name = "studentFileRandomName" ,value = "学生提交作业随机名", required = true),
@@ -424,6 +430,65 @@ public class HomeWorkController {
         }
 
     }
+
+    @ApiOperation(value = "查重针对一个作业所有记录")
+    @ApiImplicitParams({
+    })
+    @PostMapping("checkAll")
+    public ResultVO checkAll(Integer homeworkId,Integer clazzId){
+        try {
+            List<HomeworkStudent> homeworkStudents = homeworkService.checkAll(homeworkId, clazzId);
+            return ResultVOUtil.success(homeworkStudents);
+        }catch (Exception e){
+            return ResultVOUtil.error(ResultEnum.CHECK_ERROR);
+        }
+
+    }
+
+    @ApiOperation(value = "打包下载")
+    @ApiImplicitParams({
+    })
+    @GetMapping("downAll")
+    public ResultVO downAll(Integer homeworkId,Integer clazzId,
+                            HttpServletResponse response){
+         List<HomeworkStudent> homeworkStudentList = homeworkService.findHomeworkStudentByHomeworkIdAndYONClazzId(homeworkId, clazzId);
+
+
+        try {
+            response.setHeader("Content-Disposition", "attachment;filename=" + new String("压缩包名称.zip".getBytes("GB2312"), "ISO-8859-1"));  // 需要编码否则中文乱码
+            response.setContentType("application/zip;charset=utf-8");
+            response.setCharacterEncoding("UTF-8");
+            // 输出流直接用ZipOutputStream包裹，这样直接输出压缩后的流。减少服务器生成压缩文件步骤。
+            ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
+
+
+            for (HomeworkStudent hs : homeworkStudentList) {
+                if (hs.getSubmitted() == 0){
+                    continue;
+                }
+                ZipEntry zipEntryXtv2 = new ZipEntry(hs.getHomeworkName() + "-上交文件/" + hs.getClazzName() + "/" +hs.getStudentFileName());
+                zipOutputStream.putNextEntry(zipEntryXtv2);
+                File file = new File(FileUtils.getStaticPath() + hs.getFilePath() + hs.getHomeworkName() + "-上交文件/" + hs.getClazzName() + "/" + hs.getStudentFileName());
+                FileInputStream in = new FileInputStream(file);
+
+                //将输入流的数据写出到输出流中
+                byte[] buf = new byte[1024*8];
+                int len=0;
+                while ((len = in.read(buf))!=-1){
+                    zipOutputStream.write(buf,0,len);
+                }
+            }
+
+
+            zipOutputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        return null;
+    }
+
 
     @ApiOperation(value = "单条记录查重")
     @ApiImplicitParams({

@@ -7,11 +7,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Data
 @Entity
-public class HomeworkStudent {
+public class HomeworkStudent implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

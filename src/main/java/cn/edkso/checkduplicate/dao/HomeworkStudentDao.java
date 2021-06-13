@@ -13,4 +13,6 @@ public interface HomeworkStudentDao extends JpaRepository<HomeworkStudent, Integ
 
 
     List<HomeworkStudent> findAllByHomeworkId(Integer id);
+
+    List<HomeworkStudent> findAllByHomeworkIdAndClazzId(Integer homeworkId, Integer clazzId);
 }

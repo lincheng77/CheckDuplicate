@@ -1,0 +1,10 @@
+package cn.edkso.utils;
+
+import cn.textcheck.CheckManager;
+
+public class CheckUtil {
+
+    public static void setRegCode(){
+        CheckManager.INSTANCE.setRegCode("0CKeFMRpiisguag3PsbD2G2xnpf/KnTUq2nzkyqIy57G+MMXnEC/erWlTJ3RM3wNBcojxmijrKYyDKwLjLC9ApUCldeFKNl9oCUZ5b3e2sN0NAErSUKZZP5rz0ErsmUqMoWi5GDbccj77FEAokNInAx2mJ5Y9Aq9S35rmwKdmw8CcH1YmYINlJDI0G7hVCMSf21+dMRa5uXz/LbEnBI3GmbqISJYssLewgp8HmMluf9WLEuQBQLheest3LyT/+hsbTDeE2IPgDB37cxmtzR4jomz3Ca91D7p3YwgXZnwSJRpZIr9f7ggfagTACHA+9Y/N6/wJ0qEJOKxbQ8MTI3WMWHl/pN3qlja8pj2zpfwWFNQqZoKWVFUgM/3IkikBrBHV3FvnFdAtsPei2zhVholzj2jPCNxwS2gDbbkrvRsEBj69nih8ttzqkSNhh/HwBQbv7qPf52YMRTzMC1qHQ5T1kPqWayfbGcsei7nG5dprXA=");
+    }
+}

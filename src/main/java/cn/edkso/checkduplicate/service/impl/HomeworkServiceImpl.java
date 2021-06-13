@@ -12,6 +12,7 @@ import cn.edkso.checkduplicate.service.ClazzService;
 import cn.edkso.checkduplicate.service.HomeworkService;
 import cn.edkso.checkduplicate.service.StudentService;
 import cn.edkso.checkduplicate.service.SubjectService;
+import cn.edkso.utils.CheckUtil;
 import cn.edkso.utils.FileUtils;
 import cn.textcheck.CheckManager;
 import cn.textcheck.engine.checker.CheckTask;
@@ -220,7 +221,7 @@ public class HomeworkServiceImpl implements HomeworkService {
 
         String oldPathStr = tmpPath;
 //        String newPathStr = filePath + "/" + clazzId + "/";
-        String newPathStr = filePath + "/" ;
+        String newPathStr = filePath + "/"  +  homeworkStudent.getHomeworkName() + "-上交文件" + homeworkStudent.getClazzName()  +"/" ;
 
 
         //2. 作业文件提交到HDFS（也就是移动）
@@ -447,6 +448,8 @@ public class HomeworkServiceImpl implements HomeworkService {
 
             }
 
+
+
             //3. 删除下属作业-班级
             homeworkClazzDao.deleteAll(homeworkClazzList);
             //4. 删除下属作业-学生
@@ -544,54 +547,171 @@ public class HomeworkServiceImpl implements HomeworkService {
     }
 
     @Override
-    public void checkOne(HomeworkStudent homeworkStudent) throws IOException, InterruptedException {
+    public List<HomeworkStudent> checkAll(Integer homeworkId,Integer clazzId) throws IOException, InterruptedException {
 
-        CheckManager.INSTANCE.setRegCode("0CKeFMRpiisguag3PsbD2G2xnpf/KnTUq2nzkyqIy57G+MMXnEC/erWlTJ3RM3wNBcojxmijrKYyDKwLjLC9ApUCldeFKNl9oCUZ5b3e2sN0NAErSUKZZP5rz0ErsmUqMoWi5GDbccj77FEAokNInAx2mJ5Y9Aq9S35rmwKdmw8CcH1YmYINlJDI0G7hVCMSf21+dMRa5uXz/LbEnBI3GmbqISJYssLewgp8HmMluf9WLEuQBQLheest3LyT/+hsbTDeE2IPgDB37cxmtzR4jomz3Ca91D7p3YwgXZnwSJRpZIr9f7ggfagTACHA+9Y/N6/wJ0qEJOKxbQ8MTI3WMWHl/pN3qlja8pj2zpfwWFNQqZoKWVFUgM/3IkikBrBHV3FvnFdAtsPei2zhVholzj2jPCNxwS2gDbbkrvRsEBj69nih8ttzqkSNhh/HwBQbv7qPf52YMRTzMC1qHQ5T1iBeyG1fQc2LZ1p+Cg44CkI=");
+        //0. 数据库查询相关数据
+        Homework homework = homeworkDao.findById(homeworkId).get();
 
-        //通过<文件夹>加载本地比对库（支持pdf、txt、doc、docx）
-//        LocalPaperLibrary paperLibrary = LocalPaperLibrary.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath()));//初始化对比库对象
-
-        //读取待查重的<文件>（支持pdf、txt、doc、docx）
-        Paper paperTeacher = Paper.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + "/" + homeworkStudent.getFileRandomName())); //读取本地<文件>
-//        Paper paper = Paper.load(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + "/" + homeworkStudent.getStudentFileRandomName())); //读取本地<文件>
-//
-//        //注意：待查文本和比对库中的文本如果完全相同，将会自动跳过，不进行查重比对。测试时请不要使用完全相同的两个文本进行查重。
-//
-//        //构建并启动任务
-//        CheckTask checkTask = CheckManager.INSTANCE
-//                .getCheckTaskBuilder() //获取查重任务构造器
-//                .addLibrary(paperLibrary) //添加比对库。可以添加多个
-//                .addCheckPaper(paper) //添加待查Paper。可以添加多个
-////                .addCheckCore(new ContinuityCheck(CheckLevel.STRICT))
-////                .addWhiteWord(paperTeacher.getText())
-//                .build(); //构建任务，返回checkTask对象
-//        checkTask.start(); //启动任务
-//        checkTask.join(); //等待查重结束（阻塞）
-
-        File resFilePath = new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + "/res/");
-        if (!resFilePath.exists()){
-            resFilePath.mkdirs();
-        }
-        System.out.println(resFilePath.getPath());
-
-        List<Reporter> reporters = EasyStarter.check(new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + "/" + homeworkStudent.getStudentFileRandomName()),
-                new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath()),
-                resFilePath.getPath(),
-                paperTeacher.getText());
-
-
-//        for (Reporter reporter : checkTask.getReporters()) {
-//            homeworkStudent.setTextRepeat(Float.valueOf(reporter.getCopyRate()));
-//            homeworkStudent.setIsCheck(1);
-//            homeworkStudentDao.save(homeworkStudent);
-//            reporter.saveAsFile(FileUtils.getStaticPath() + "/" + paper.getTitle() + ".html", ReportType.TEXT_WITH_CITATION);
+        //0.1 实现有无clazzId通用逻辑（有clazzId 查重班级，无查询本作业所有）
+        List<HomeworkClazz> hcList = null;
+//        if (clazzId != null){
+            hcList = homeworkClazzDao.findAllByHomeworkId(homeworkId);
+//        }else{
+//            HomeworkClazz homeworkClazz = homeworkClazzDao.findByHomeworkIdAndClazzId(homeworkId, clazzId).get();
+//            hcList = new ArrayList<>();
+//            hcList.add(homeworkClazz);
 //        }
-//
+
+        List<HomeworkStudent> hsList = homeworkStudentDao.findAllByHomeworkIdAndClazzId(homeworkId, clazzId);
+
+
+        //1. 设置验证
+        CheckUtil.setRegCode();
+
+        //2. 创建 CheckTask 构造类对象（taskBuilder）
+        CheckTask.Builder taskBuilder = CheckManager.INSTANCE.getCheckTaskBuilder();
+
+        //3. 添加作业下属班级目录下的文件到 => 本地库
+        for (HomeworkClazz homeworkClazz : hcList) {
+            //班级下属学生是否有上交记录
+            if (homeworkClazz.getSubmitted() > 0){
+                //班级文件夹
+                File clazzDir = new File(FileUtils.getStaticPath() + homework.getFilePath() + homeworkClazz.getClazzName());
+                //通过<文件夹>加载本地比对库（支持pdf、txt、doc、docx）
+                LocalPaperLibrary paperLibrary = LocalPaperLibrary.load(clazzDir);
+                //构造类对象 添加 本地库
+                taskBuilder.addLibrary(paperLibrary);
+            }
+        }
+
+        //4. 添加作业下属学生文件到 => 待查库
+        List<Paper> paperList = new ArrayList<>();
+        for (HomeworkStudent homeworkStudent : hsList) {
+            //当前学生记录是否提交作业
+            if (homeworkStudent.getSubmitted() == 1){
+                //学生文件
+                File studentFile = new File(FileUtils.getStaticPath() + homework.getFilePath() + homeworkStudent.getClazzName() + "/" + homeworkStudent.getStudentFileName());
+                //通过<文件夹>加载待查文件（支持pdf、txt、doc、docx）
+                Paper paper = Paper.load(studentFile);
+
+                //设置作者做ID（作业-学生 => 名字、作业-学生id）
+                paper.setId(String.valueOf(homeworkStudent.getId()))
+                        .setAuthor(homeworkStudent.getStudentName());
+
+                paper.setPayload(homeworkStudent);
+
+                paperList.add(paper);
+            }
+        }
+        taskBuilder.addCheckPaper(paperList);
+
+        //5. 查重并获取结果
+        CheckTask checkTask = taskBuilder.build();
+        checkTask.start(); //启动任务
+        checkTask.join(); //等待查重结束（阻塞）
+        List<Reporter> reporters = checkTask.getReporters();
+
+        //6.
+        List<HomeworkStudent> checkedhomeworkStudentList = new ArrayList<>();
         for (Reporter reporter : reporters) {
+            //6.0 从paper上下文获取homeworkStudent
+            HomeworkStudent homeworkStudent = (HomeworkStudent) reporter.getPaper().getPayload();
+
+            //6.1 设置查重结果
             homeworkStudent.setTextRepeat(Float.valueOf(reporter.getCopyRate()));
             homeworkStudent.setIsCheck(1);
-            homeworkStudentDao.save(homeworkStudent);
+            checkedhomeworkStudentList.add(homeworkStudent);
+//            Integer id = Integer.valueOf(reporter.getPaper().getId());
+
+            //6.2 查重结果保存到文件（详细结果）
+            String saveDir = FileUtils.getStaticPath() + homework.getFilePath() + homeworkStudent.getHomeworkName()  + "-查重结果/" + homeworkStudent.getClazzName() + "/";
+            File saveDirFile = new File(saveDir);
+            if (!saveDirFile.exists()){
+                saveDirFile.mkdirs();
+            }
+            reporter.saveAsFile(saveDir + "/" + homeworkStudent.getStudentFileName()  + ".html", ReportType.TEXT_WITH_ORIGINAL);
         }
+
+        //7. 把查重的数据保存到数据库
+        List<HomeworkStudent> res = homeworkStudentDao.saveAll(checkedhomeworkStudentList);
+        return res;
+    }
+
+    @Override
+    public List<HomeworkStudent> findHomeworkStudentByHomeworkIdAndYONClazzId(Integer homeworkId, Integer clazzId) {
+        List<HomeworkStudent> hsList = null;
+        if (clazzId != null){
+            hsList = homeworkStudentDao.findAllByHomeworkIdAndClazzId(homeworkId, clazzId);
+        }else{
+            hsList = homeworkStudentDao.findAllByHomeworkId(homeworkId);
+        }
+        return hsList;
+    }
+
+
+    @Override
+    public void checkOne(HomeworkStudent homeworkStudent) throws IOException, InterruptedException {
+
+        //0. 数据库查询相关数据
+        List<HomeworkClazz> hcList = homeworkClazzDao.findAllByHomeworkId(homeworkStudent.getHomeworkId());
+
+        //1. 设置验证
+        CheckUtil.setRegCode();
+
+        //2. 创建 CheckTask 构造类对象（taskBuilder）
+        CheckTask.Builder taskBuilder = CheckManager.INSTANCE.getCheckTaskBuilder();
+
+        //3. 添加作业下属班级目录下的文件到 => 本地库
+        for (HomeworkClazz homeworkClazz : hcList) {
+            //班级下属学生是否有上交记录
+            if (homeworkClazz.getSubmitted() > 0) {
+                //班级文件夹
+                File clazzDir = new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + homeworkClazz.getClazzName());
+                //通过<文件夹>加载本地比对库（支持pdf、txt、doc、docx）
+                LocalPaperLibrary paperLibrary = LocalPaperLibrary.load(clazzDir);
+                //构造类对象 添加 本地库
+                taskBuilder.addLibrary(paperLibrary);
+            }
+        }
+
+        //4. 添加作业下属学生文件到 => 待查库
+        {
+            //学生文件
+            File studentFile = new File(FileUtils.getStaticPath() + homeworkStudent.getFilePath() + homeworkStudent.getClazzName() + "/" + homeworkStudent.getStudentFileName());
+            //通过<文件夹>加载待查文件（支持pdf、txt、doc、docx）
+            Paper paper = Paper.load(studentFile);
+
+            //设置作者做ID（作业-学生 => 名字、作业-学生id）
+            paper.setId(String.valueOf(homeworkStudent.getId()))
+                    .setAuthor(homeworkStudent.getStudentName());
+
+            taskBuilder.addCheckPaper(paper);
+        }
+
+        //5. 查重并获取结果
+        CheckTask checkTask = taskBuilder.build();
+        checkTask.start(); //启动任务
+        checkTask.join(); //等待查重结束（阻塞）
+        List<Reporter> reporters = checkTask.getReporters();
+
+        //6.
+        {
+            //6.1 设置查重结果
+            homeworkStudent.setTextRepeat(Float.valueOf(reporters.get(0).getCopyRate()));
+            homeworkStudent.setIsCheck(1);
+
+            //6.2 查重结果保存到文件（详细结果）
+            String saveDir = FileUtils.getStaticPath() + homeworkStudent.getFilePath() + homeworkStudent.getHomeworkName() + "-查重结果/" + homeworkStudent.getClazzName() + "/";
+            File saveDirFile = new File(saveDir);
+            if (!saveDirFile.exists()) {
+                saveDirFile.mkdirs();
+            }
+
+            reporters.get(0).saveAsFile(saveDir + "/" + homeworkStudent.getStudentFileName() + ".html", ReportType.TEXT_WITH_ORIGINAL);
+        }
+
+        //7. 把查重的数据保存到数据库
+        HomeworkStudent res = homeworkStudentDao.save(homeworkStudent);
     }
 
     @Override

@@ -32,6 +32,7 @@
       ,{field: 'id', width: 100, title: '作业-学生ID', hide: true}//隐藏
       ,{field: 'homeworkId', width: 120, title: '作业ID', sort : true} 
       ,{field: 'clazzId', hide: true}
+      ,{field: 'clazzName', title: '班级名称', hide: true}
       ,{field: 'subjectName', title: '作业学科', minWidth: 170}
       ,{field: 'homeworkName', title: '作业名称', minWidth: 270}
       ,{field: 'content', title: '作业内容', hide: true} //隐藏
@@ -64,6 +65,7 @@
             id: submit_homework_data.id
             ,homeworkId: submit_homework_data.homeworkId
             ,clazzId: submit_homework_data.clazzId
+            ,clazzName: submit_homework_data.clazzName
             ,filePath: submit_homework_data.filePath //老师作业目录
             ,studentFileName: res.data.fileName
             ,studentFileRandomName: res.data.fileRandomName

@@ -46,5 +46,8 @@ public interface HomeworkService {
     Homework findHomeworkById(Integer id);
 
     Page<Homework> noSubmitStudentList(Integer page, Integer limit, Integer homeworkId, Integer clazzId);
+    public List<HomeworkStudent> checkAll(Integer homeworkId,Integer clazzId)throws IOException, InterruptedException ;
+
+    List<HomeworkStudent> findHomeworkStudentByHomeworkIdAndYONClazzId(Integer homeworkId, Integer clazzId);
 
 }
