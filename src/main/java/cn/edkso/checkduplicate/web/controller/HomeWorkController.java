@@ -118,12 +118,12 @@ public class HomeWorkController {
                         String fileName, String tmpPath, String fileRandomName,
                         Integer subjectId, @RequestParam Timestamp deadline){
 
-//        //1. 通过token，从redis获取用户
-//        String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.TEACHER_TOKEN_NAME);
-//        Teacher teacher = (Teacher) redisTemplate.opsForValue().get(access_token);
-//        if(teacher == null){
-//            return ResultVOUtil.error(ResultEnum.NOT_LOGGED_IN); //没有登录
-//        }
+        //1. 通过token，从redis获取用户
+        String access_token = ServletUtils.getRequest().getHeader(ConfigDefault.TEACHER_TOKEN_NAME);
+        Teacher teacher = (Teacher) redisTemplate.opsForValue().get(access_token);
+        if(teacher == null){
+            return ResultVOUtil.error(ResultEnum.NOT_LOGGED_IN); //没有登录
+        }
         String[] clazzIdArr = clazzIds.split(",");
         Homework homework = new Homework();
         homework.setName(name);
@@ -138,7 +138,7 @@ public class HomeWorkController {
         homework.setFileRandomName(fileRandomName);
 
         homework.setSubjectId(subjectId);
-        homework.setTeacherId(1);
+        homework.setTeacherId(teacher.getId());
 
         //subjectName 和 path没有设置还
         try {
@@ -455,7 +455,7 @@ public class HomeWorkController {
 
 
         try {
-            response.setHeader("Content-Disposition", "attachment;filename=" + new String("压缩包名称.zip".getBytes("GB2312"), "ISO-8859-1"));  // 需要编码否则中文乱码
+            response.setHeader("Content-Disposition", "attachment;filename=" + new String((homeworkStudentList.get(0).getHomeworkName() +"-提交作业.zip").getBytes("GB2312"), "ISO-8859-1"));  // 需要编码否则中文乱码
             response.setContentType("application/zip;charset=utf-8");
             response.setCharacterEncoding("UTF-8");
             // 输出流直接用ZipOutputStream包裹，这样直接输出压缩后的流。减少服务器生成压缩文件步骤。

@@ -221,7 +221,7 @@ public class HomeworkServiceImpl implements HomeworkService {
 
         String oldPathStr = tmpPath;
 //        String newPathStr = filePath + "/" + clazzId + "/";
-        String newPathStr = filePath + "/"  +  homeworkStudent.getHomeworkName() + "-上交文件" + homeworkStudent.getClazzName()  +"/" ;
+        String newPathStr = filePath + "/"  +  homeworkStudent.getHomeworkName() + "-上交文件/" + homeworkStudent.getClazzName()  +"/" ;
 
 
         //2. 作业文件提交到HDFS（也就是移动）
@@ -389,7 +389,9 @@ public class HomeworkServiceImpl implements HomeworkService {
             homeworkClazz.setClazzId(Integer.valueOf(clazzId));
             homeworkClazz.setClazzName(clazz.getName());
             homeworkClazz.setSubmitted(0);
-            homeworkClazz.setTotal(0);
+            homeworkClazz.setTotal(clazz.getNumbers());
+            homework.setTotal(clazz.getNumbers() + homework.getTotal());
+
             homeworkClazz.setState(1);
             homeworkClazzList.add(homeworkClazz);
 
@@ -562,7 +564,13 @@ public class HomeworkServiceImpl implements HomeworkService {
 //            hcList.add(homeworkClazz);
 //        }
 
-        List<HomeworkStudent> hsList = homeworkStudentDao.findAllByHomeworkIdAndClazzId(homeworkId, clazzId);
+        List<HomeworkStudent> hsList = null;
+        if (clazzId != -1){
+            hsList = homeworkStudentDao.findAllByHomeworkIdAndClazzId(homeworkId, clazzId);
+        }else{
+            hsList = homeworkStudentDao.findAllByHomeworkId(homeworkId);
+        }
+
 
 
         //1. 设置验证
@@ -576,7 +584,7 @@ public class HomeworkServiceImpl implements HomeworkService {
             //班级下属学生是否有上交记录
             if (homeworkClazz.getSubmitted() > 0){
                 //班级文件夹
-                File clazzDir = new File(FileUtils.getStaticPath() + homework.getFilePath() + homeworkClazz.getClazzName());
+                File clazzDir = new File(FileUtils.getStaticPath() + homework.getFilePath() + homework.getName() + "-上交文件/" + homeworkClazz.getClazzName());
                 //通过<文件夹>加载本地比对库（支持pdf、txt、doc、docx）
                 LocalPaperLibrary paperLibrary = LocalPaperLibrary.load(clazzDir);
                 //构造类对象 添加 本地库
@@ -590,7 +598,7 @@ public class HomeworkServiceImpl implements HomeworkService {
             //当前学生记录是否提交作业
             if (homeworkStudent.getSubmitted() == 1){
                 //学生文件
-                File studentFile = new File(FileUtils.getStaticPath() + homework.getFilePath() + homeworkStudent.getClazzName() + "/" + homeworkStudent.getStudentFileName());
+                File studentFile = new File(FileUtils.getStaticPath() + homework.getFilePath() + homework.getName() + "-上交文件/" + homeworkStudent.getClazzName() + "/" + homeworkStudent.getStudentFileName());
                 //通过<文件夹>加载待查文件（支持pdf、txt、doc、docx）
                 Paper paper = Paper.load(studentFile);
 
@@ -640,7 +648,7 @@ public class HomeworkServiceImpl implements HomeworkService {
     @Override
     public List<HomeworkStudent> findHomeworkStudentByHomeworkIdAndYONClazzId(Integer homeworkId, Integer clazzId) {
         List<HomeworkStudent> hsList = null;
-        if (clazzId != null){
+        if (clazzId != -1){
             hsList = homeworkStudentDao.findAllByHomeworkIdAndClazzId(homeworkId, clazzId);
         }else{
             hsList = homeworkStudentDao.findAllByHomeworkId(homeworkId);

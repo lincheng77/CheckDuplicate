@@ -13,6 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.models.auth.In;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -92,10 +93,15 @@ public class StudentController {
             @ApiImplicitParam(name = "name" ,value = "学生姓名", required = true)
     })
     @PostMapping("register")
-    public ResultVO register(String username, String password, String name){
-        Student student = studentService.register(username,password,name);
-        if (student != null){
-            return ResultVOUtil.success(student);
+    public ResultVO register(String username, String password, String name, Integer clazzId){
+
+        try {
+            Student student = studentService.register(username,password,name,clazzId);
+            if (student != null){
+                return ResultVOUtil.success(student);
+            }
+        }catch (CDException cdException){
+            return ResultVOUtil.error(cdException.getMessage());
         }
         return ResultVOUtil.error(ResultEnum.REGISTER_ERROR);
     }

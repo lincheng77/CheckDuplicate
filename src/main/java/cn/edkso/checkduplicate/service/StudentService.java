@@ -11,7 +11,7 @@ public interface StudentService {
     public Student login(String username, String password);
 
 
-    Student register(String username, String password, String name);
+    Student register(String username, String password, String name , Integer clazzId);
 
     List<Student> findAllByClazzId(Integer id);
 

@@ -64,6 +64,7 @@
           ,data: {
             id: submit_homework_data.id
             ,homeworkId: submit_homework_data.homeworkId
+            ,homeworkName: submit_homework_data.homeworkName
             ,clazzId: submit_homework_data.clazzId
             ,clazzName: submit_homework_data.clazzName
             ,filePath: submit_homework_data.filePath //老师作业目录
@@ -93,8 +94,9 @@
     var data = obj.data;
     if(obj.event === 'submit-homework'){
       console.log("sssssss")
-      $('#homework-file').click();
+
       submit_homework_data = data;
+      $('#homework-file').click();
       console.log(submit_homework_data)
     }else if(obj.event === 'details'){//作业详情
       json = JSON.stringify(data)

@@ -15,104 +15,167 @@
 <body>
 
 
-  <div class="layadmin-user-login layadmin-user-display-show" id="LAY-user-login" style="display: none;">
-    <div class="layadmin-user-login-main">
-      <div class="layadmin-user-login-box layadmin-user-login-header">
-        <h2>学生用户注册</h2>
-        <p> </p>
-      </div>
-      <div class="layadmin-user-login-box layadmin-user-login-body layui-form">
-        <div class="layui-form-item">
-          <label class="layadmin-user-login-icon layui-icon layui-icon-username" for="LAY-user-login-cellphone"></label>
-          <input type="text" name="username" id="LAY-user-login-cellphone" lay-verify="number" placeholder="学号" class="layui-input">
-        </div>
-        <div class="layui-form-item">
-          <label class="layadmin-user-login-icon layui-icon layui-icon-password" for="LAY-user-login-password"></label>
-          <input type="password" name="password" id="LAY-user-login-password" lay-verify="pass" placeholder="密码" class="layui-input">
-        </div>
-        <div class="layui-form-item">
-          <label class="layadmin-user-login-icon layui-icon layui-icon-password" for="LAY-user-login-repass"></label>
-          <input type="password" name="repass" id="LAY-user-login-repass" lay-verify="required" placeholder="确认密码" class="layui-input">
-        </div>
-        <div class="layui-form-item">
-          <label class="layadmin-user-login-icon layui-icon layui-icon-user" for="LAY-user-login-nickname"></label>
-          <input type="text" name="name" id="LAY-user-login-nickname" lay-verify="nickname" placeholder="学生姓名" class="layui-input">
-        </div>
-        <div class="layui-form-item">
-          <input type="checkbox" name="agreement" lay-skin="primary" title="同意用户协议" checked>
-          <a href="login.html" class="layadmin-user-jump-change layadmin-link layui-hide-xs" style="margin-top: 8px;">用已有帐号登入</a>
-        </div>
-        <div class="layui-form-item">
-          <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="LAY-user-reg-submit">注 册</button>
-        </div>
-        <!-- <div class="layui-trans layui-form-item layadmin-user-login-other">
-          <label>社交账号注册</label>
-          <a href="javascript:;"><i class="layui-icon layui-icon-login-qq"></i></a>
-          <a href="javascript:;"><i class="layui-icon layui-icon-login-wechat"></i></a>
-          <a href="javascript:;"><i class="layui-icon layui-icon-login-weibo"></i></a>
-          
-          <a href="login.html" class="layadmin-user-jump-change layadmin-link layui-hide-xs">用已有帐号登入</a>
-          <a href="login.html" class="layadmin-user-jump-change layadmin-link layui-hide-sm layui-show-xs-inline-block">登入</a>
-        </div> -->
-      </div>
+<div class="layadmin-user-login layadmin-user-display-show" id="LAY-user-login" style="display: none;">
+  <div class="layadmin-user-login-main">
+    <div class="layadmin-user-login-box layadmin-user-login-header">
+      <h2>用户注册</h2>
+      <p> </p>
     </div>
-    
-    <div class="layui-trans layadmin-user-login-footer">
-      
-      <p>© 2018 </p>
+    <div class="layadmin-user-login-box layadmin-user-login-body layui-form">
+      <div class="layui-form-item">
+        <!-- <label class="layui-form-label">单选框</label> -->
+        <div class="layui-input-block" style="margin-left: 12px;">
+          <input type="radio" name="usertype" value="教师" title="教师" checked>
+          <input type="radio" name="usertype" value="学生" title="学生">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layadmin-user-login-icon layui-icon layui-icon-username" for="LAY-user-login-cellphone"></label>
+        <input type="text" name="username" id="LAY-user-login-cellphone" lay-verify="number" placeholder="学号/工号）" class="layui-input">
+      </div>
+      <div class="layui-form-item">
+        <label class="layadmin-user-login-icon layui-icon layui-icon-password" for="LAY-user-login-password"></label>
+        <input type="password" name="password" id="LAY-user-login-password" lay-verify="pass" placeholder="密码" class="layui-input">
+      </div>
+      <div class="layui-form-item">
+        <label class="layadmin-user-login-icon layui-icon layui-icon-password" for="LAY-user-login-repass"></label>
+        <input type="password" name="repass" id="LAY-user-login-repass" lay-verify="required" placeholder="确认密码" class="layui-input">
+      </div>
+      <div class="layui-form-item">
+        <label class="layadmin-user-login-icon layui-icon layui-icon-user" for="LAY-user-login-nickname"></label>
+        <input type="text" name="name" id="LAY-user-login-nickname" lay-verify="nickname" placeholder="学生姓名/教师姓名" class="layui-input">
+      </div>
+      <div class="layui-form-item">
+        <label class="layadmin-user-login-icon layui-icon layui-icon-group" for="LAY-user-login-nickname"><i class="layui-icon layui-icon-group"></i></label>
 
+        <select  name="clazzId"  id="clazzIdSelect" lay-verify="">
+            <option value="-1">班级(学生必选，教师无需)</option>
+          </select>
+      </div>
+      <div class="layui-form-item">
+        <input type="checkbox" name="agreement" lay-skin="primary" title="同意用户协议" checked>
+        <a href="login.html" class="layadmin-user-jump-change layadmin-link layui-hide-xs" style="margin-top: 8px;">用已有帐号登入</a>
+      </div>
+      <div class="layui-form-item">
+        <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="LAY-user-reg-submit">注 册</button>
+      </div>
+      <!-- <div class="layui-trans layui-form-item layadmin-user-login-other">
+        <label>社交账号注册</label>
+        <a href="javascript:;"><i class="layui-icon layui-icon-login-qq"></i></a>
+        <a href="javascript:;"><i class="layui-icon layui-icon-login-wechat"></i></a>
+        <a href="javascript:;"><i class="layui-icon layui-icon-login-weibo"></i></a>
+
+        <a href="login.html" class="layadmin-user-jump-change layadmin-link layui-hide-xs">用已有帐号登入</a>
+        <a href="login.html" class="layadmin-user-jump-change layadmin-link layui-hide-sm layui-show-xs-inline-block">登入</a>
+      </div> -->
     </div>
+  </div>
+
+  <div class="layui-trans layadmin-user-login-footer">
+
+    <p>© 2018 </p>
 
   </div>
 
-  <script src="../../layuiadmin/layui/layui.js"></script>  
-  <script>
+</div>
+
+<script src="../../layuiadmin/layui/layui.js"></script>
+<script>
   layui.config({
     base: '../../layuiadmin/' //静态资源所在路径
   }).extend({
     index: 'lib/index' //主入口模块
   }).use(['index', 'user', 'layer'], function(){
     var $ = layui.$
-    ,setter = layui.setter
-    ,admin = layui.admin
-    ,form = layui.form
-    ,router = layui.router();
+            ,setter = layui.setter
+            ,admin = layui.admin
+            ,form = layui.form
+            ,router = layui.router();
+
 
     form.render();
+    console.log("ceshi")
+    //请求后端当前作业下属班级列表
+    //带输入的选择框【查询班级】
+    var htmls = '<option value="-1">班级(学生必选，教师无需)</option>'; //全局变量
+    admin.req({
+      url: layui.setter.reqUrl + '/clazz/listAll' //实际使用请改成服务端真实接口
+      ,type: 'get'
+
+      ,done: function(res){
+        var clazzList = res.data;
+        for(var index in clazzList){
+          htmls += '<option value = "' + clazzList[index].id + '">' + clazzList[index].name + '</option>'
+        }
+
+        console.log("ceshi")
+
+        $("#clazzIdSelect").html(htmls);
+        form.render('select');//需要渲染一下
+      }
+    });
+
+
 
     //提交
     form.on('submit(LAY-user-reg-submit)', function(obj){
       var field = obj.field;
-      
+
       //确认密码
       if(field.password !== field.repass){
         return layer.msg('两次密码输入不一致');
       }
-      
+
       //是否同意用户协议
       if(!field.agreement){
         return layer.msg('你必须同意用户协议才能注册');
       }
 
-      //请求接口
-      admin.req({
-        url: layui.setter.reqUrl + '/student/register' //实际使用请改成服务端真实接口
-        ,data: field
-        ,type: 'post'
-        ,done: function(res){    
-          
-          layer.msg('注册成功', {
-            offset: '15px'
-            ,icon: 1
-            ,time: 1000
-          }, function(){
-            location.href = layui.setter.staticUrl +'/login.html'; //跳转到登入页
-          });
-        }
-      });
+      if(obj.field.usertype == "学生" && field.clazzId == -1){
+        return layer.msg('学生注册必须选择班级');
+      }
+
+      if(obj.field.usertype == "学生"){
+        //请求接口
+        admin.req({
+          url: layui.setter.reqUrl + '/student/register' //实际使用请改成服务端真实接口
+          ,data: field
+          ,type: 'post'
+          ,done: function(res){
+
+            layer.msg('注册成功', {
+              offset: '15px'
+              ,icon: 1
+              ,time: 1000
+            }, function(){
+              location.href = layui.setter.staticUrl +'/login.html'; //跳转到登入页
+            });
+          }
+        });
+      }else if(obj.field.usertype == "教师"){
+        //请求接口
+        admin.req({
+          url: layui.setter.reqUrl + '/teacher/register' //实际使用请改成服务端真实接口
+          ,data: field
+          ,type: 'post'
+          ,done: function(res){
+
+            layer.msg('注册成功', {
+              offset: '15px'
+              ,icon: 1
+              ,time: 1000
+            }, function(){
+              location.href = layui.setter.staticUrl +'/login.html'; //跳转到登入页
+            });
+          }
+        });
+      }else{
+        layer.msg('请务必正确选择用户类型', {icon: 0});  //0是感叹号
+      }
+
       return false;
     });
   });
-  </script>
+</script>
 </body>
 </html>

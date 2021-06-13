@@ -62,8 +62,8 @@
 
         <ul class="layui-nav" style="text-align: center;">
           <div style="float:right;margin-top: 35px;margin-right: 21px" >
-            <button class="layui-btn layui-btn-xs layuiadmin-btn-list" data-type="batchdel">打包下载附件</button>
-            <button class="layui-btn layui-btn-xs layuiadmin-btn-list" data-type="add">一件查重</button>
+            <button class="layui-btn layui-btn-xs layuiadmin-btn-list" data-type="downAll">打包下载附件</button>
+            <button class="layui-btn layui-btn-xs layuiadmin-btn-list" data-type="checkAll">一件查重</button>
           </div>
 
           <div style="display: inline-block">
@@ -110,7 +110,12 @@
         </script>
         <script type="text/html" id="table-content-list">
           <a class="layui-btn  layui-btn-xs layui-btn-radius"  lay-event="check"><i class="layui-icon layui-icon-find-fill"></i>查重</a>
-          <a class="layui-btn layui-bg-cyan  layui-btn-xs layui-btn-radius" " lay-event="down"><i class="layui-icon layui-icon-download-circle"></i>下载附件</a>
+          {{#  if(d.isCheck == 1){ }}
+            <button class="layui-btn layui-btn-normal  layui-btn-xs" lay-event="checkDetails">查重详情</button>
+          {{#  } else { }}
+            <button class="layui-btn layui-btn-disabled layui-btn-xs">暂未查重</button>
+          {{#  } }}
+          <a class="layui-btn layui-bg-cyan  layui-btn-xs layui-btn-radius" lay-event="down"><i class="layui-icon layui-icon-download-circle"></i>下载附件</a>
         </script>
       </div>
     </div>
@@ -166,7 +171,7 @@
     console.log(_get('name'))
     $("#curClazzNmae").html("作业总计");
     $("#curClazzSubmitted").html(_get('submitted'));
-    $("#curClazzNoSubmitted").html(_get('total'));
+    $("#curClazzNoSubmitted").html(_get('total') - _get('submitted'));
 
 
     //老师作业详情列表
@@ -259,7 +264,7 @@
           ,done: function(res){
             $("#curClazzNmae").html(res.data.clazzName);
             $("#curClazzSubmitted").html(res.data.submitted);
-            $("#curClazzNoSubmitted").html(res.data.total);
+            $("#curClazzNoSubmitted").html(res.data.total - res.data.submitted);
           }
         });
       }else{
@@ -272,7 +277,7 @@
           ,done: function(res){
             $("#curClazzNmae").html("作业总计");
             $("#curClazzSubmitted").html(res.data.submitted);
-            $("#curClazzNoSubmitted").html(res.data.total);
+            $("#curClazzNoSubmitted").html(res.data.total - res.data.submitted);
           }
         });
       }
@@ -286,52 +291,65 @@
 
 
     var $ = layui.$, active = {
-      batchdel: function(){
-        var checkStatus = table.checkStatus('LAY-app-details-list')
-        ,checkData = checkStatus.data; //得到选中的数据
+      downAll: function(){
 
-        console.log(JSON.stringify(checkData))
-        if(checkData.length === 0){
-          return layer.msg('请选择数据');
+        var options =$("#clazzIdSelect option:selected"); //获取选中的项
+
+        console.log(options.val())
+
+        if(options.clazzId == -1) {
+          window.open(layui.setter.reqUrl + "/homework/downAll?"
+                  + "homeworkId=" + homeworkId
+          );
+        }else{
+          window.open(layui.setter.reqUrl + "/homework/downAll?"
+                  + "homeworkId=" + homeworkId
+                  + "&clazzId=" + options.val()
+          );
         }
-      
-        layer.confirm('确定删除吗？', function(index) {
-          
-          //执行 Ajax 后重载
-          /*
+
+      },
+      checkAll: function(){
+        var options =$("#clazzIdSelect option:selected"); //获取选中的项
+        if(options.clazzId == -1) {
+
           admin.req({
-            url: 'xxx'
-            //,……
-          });
-          */
-          admin.req({
-            url: layui.setter.reqUrl + '/clazz/del' //实际使用请改成服务端真实接口
-            ,data: JSON.stringify(checkData)
+            url: layui.setter.reqUrl + '/homework/checkAll' //实际使用请改成服务端真实接口
+            ,data: {
+              "homeworkId":homeworkId,
+            }
             ,type: 'post'
-            ,contentType:'application/json'
             ,done: function(res){
               table.reload('LAY-app-content-list');
-              layer.msg('已删除');
+              layer.msg('查重完毕');
             }
           });
-          // table.reload('LAY-app-content-list');
-          // layer.msg('已删除');
-        });
-      },
-      add: function(){
-        layer.open({
-          type: 2
-          ,title: '添加文章'
-          ,content: 'listform.html'
-          ,maxmin: true
-          ,area: ['550px', '550px']
-          ,btn: ['确定', '取消']
-          ,yes: function(index, layero){
-            //点击确认触发 iframe 内容中的按钮提交
-            var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
-            submit.click();
+        }else{
+          admin.req({
+            url: layui.setter.reqUrl + '/homework/checkAll' //实际使用请改成服务端真实接口
+            ,data: {
+              "homeworkId":homeworkId,
+              "clazzId":options.val(),
+            }
+            ,type: 'post'
+            ,done: function(res){
+              table.reload('LAY-app-content-list');
+              layer.msg('查重完毕');
+            }
+          });
+        }
+        admin.req({
+          url: layui.setter.reqUrl + '/homework/checkAll' //实际使用请改成服务端真实接口
+          ,data: JSON.stringify(checkData)
+          ,type: 'post'
+          ,contentType:'application/json'
+          ,done: function(res){
+            table.reload('LAY-app-content-list');
+            layer.msg('已删除');
           }
-        }); 
+        });
+        // table.reload('LAY-app-content-list');
+        // layer.msg('已删除');
       }
     }; 
 

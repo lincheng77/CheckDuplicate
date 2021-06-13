@@ -33,6 +33,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public Student login(String username, String password) {
         Student student = studentDao.findByUsernameAndPassword(username, MD5Utils.md5(password));
+
         if(student != null){
             return student;
         }
@@ -40,14 +41,26 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public Student register(String username, String password, String name) {
+    public Student register(String username, String password, String name, Integer clazzId) {
+        Clazz clazz = clazzService.findById(clazzId);
+        clazz.setNumbers(clazz.getNumbers() + 1);
+        clazzService.saveAndUpdate(clazz);
+
+        if(studentDao.findByUsername(username) !=null){
+            throw new CDException("用户已存在");
+        }
+
         Student student = new Student();
         student.setState(1);
         student.setName(name);
         student.setUsername(username);
         student.setPassword(MD5Utils.md5(password));
         student.setName(name);
+
+        student.setClazzId(clazzId);
+        student.setClazzName(clazz.getName());
         Student resStudent = studentDao.save(student);
+
         return resStudent;
     }
 
@@ -69,14 +82,28 @@ public class StudentServiceImpl implements StudentService {
 
         clazzId = Integer.valueOf(excelList.get(1).get(0));
         Clazz clazz = clazzService.findById(clazzId);
+        Integer clazzNumbers = clazz.getNumbers();
 
         //2. 组装studentList
         List<Student> studentList = new ArrayList<>();
         for (int i = 1; i < excelList.size(); i++) {
+
+            //跳过已经注册过的学生
+            if (studentDao.findByUsername(excelList.get(i).get(1)) != null){
+                continue;
+            }
+
+
+
             if (clazzId != Integer.valueOf(excelList.get(i).get(0))){
                 clazzId = Integer.valueOf(excelList.get(i).get(0));
-                clazz = clazzService.findById(clazzId);
             }
+
+
+            clazz = clazzService.findById(clazzId);
+            clazz.setNumbers(clazz.getNumbers() + 1);
+            clazzService.saveAndUpdate(clazz);
+
 
             Student student = new Student();
             student.setUsername(excelList.get(i).get(1));
@@ -85,7 +112,6 @@ public class StudentServiceImpl implements StudentService {
             student.setClazzId(clazz.getId());
             student.setClazzName(clazz.getName());
             student.setState(1);
-
             studentList.add(student);
         }
 
@@ -136,6 +162,9 @@ public class StudentServiceImpl implements StudentService {
             Clazz clazz = clazzService.findById(student.getClazzId());
             oldStudentr.setClazzName(clazz.getName());
         }
+
+
+
         return studentDao.save(oldStudentr);
     }
 

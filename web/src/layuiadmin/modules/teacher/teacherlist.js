@@ -197,7 +197,21 @@ layui.define(['table', 'form'], function(exports){
       + "filePath="+ data.studentFilePath
       + "&fileName="+ data.studentFileName
       + "&fileRandomName="+ data.studentFileRandomName);
+    } else if(obj.event === 'checkDetails'){
+
+      console.log(data)
+
+      window.open(layui.setter.reqUrl + "/homework/down?"
+          + "filePath="+ data.filePath + data.homeworkName + "-查重结果/" + data.clazzName + "/"
+          + "&fileName="+ data.studentFileName + ".html"
+          + "&fileRandomName="+ data.studentFileRandomName + ".html");
+      // parent.layui.index.openTabsPage(layui.setter.reqUrl + "/homework/down?"
+      //     + "filePath="+ data.filePath + data.homeworkName + "-查重结果/" + data.clazzName + "/"
+      //     + "&fileName="+ data.studentFileName + ".html"
+      //     + "&fileRandomName="+ data.studentFileRandomName + ".html")
     }
+
+
   });
 
   exports('teacherlist', {})

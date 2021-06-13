@@ -9,7 +9,7 @@ layui.define(['laytpl', 'layer', 'element', 'util'], function(exports){
   exports('setter', {
     container: 'LAY_app' //容器ID
     // ,reqUrl: 'http://152.136.127.162:8080'
-    ,staticUrl: '/src/views/user'
+    ,staticUrl: '/checkduplicate/web/src/views/user'
     // ,reqUrl: 'http://10.211.55.30:8080'
     ,reqUrl: 'http://localhost:8080'
     ,base: layui.cache.base //记录静态资源所在路径
